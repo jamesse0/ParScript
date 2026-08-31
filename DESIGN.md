@@ -123,17 +123,50 @@ If time remains after the above is working end-to-end, pick from the cut list in
   history table from `/me/metrics` (problem, tokens, par, time, pass/fail). No trend chart
   tonight.
 
-## 8. Team split (3 people, parallelizable)
+## 8. Team split (3 people, by skill)
 
-Work in separate top-level directories (`/frontend`, `/backend`) to minimize merge conflicts on
-one branch.
+**First, a 15-minute sync before splitting off:** lock the exact request/response JSON shapes in
+section 5 and the `problems` table columns in section 4. Everything below only avoids collisions
+if all three of you build against that agreed contract instead of guessing at each other's
+shapes mid-build.
 
-1. **Backend + OpenAI + sandbox** — `POST /chat`, `POST /submit`, `POST /review`, the Docker
-   sandbox runner script.
-2. **Supabase schema + auth + data endpoints** — table creation, GitHub OAuth wiring, seeding 2–3
-   problems, `GET /problems*`, `GET /leaderboard/{id}`, `GET /me/metrics`.
-3. **Frontend** — all pages/components in section 7, built against the API contract in section 5
-   so backend and frontend can proceed in parallel.
+Work in separate directories/files so nobody edits the same file:
+
+1. **Supabase person → `/backend/routes/problems.py`, `leaderboard.py`, `metrics.py` + Supabase
+   project itself**
+   - Create all four tables (`profiles`, `problems`, `attempts`, `submissions`) and their columns
+     per section 4.
+   - Wire GitHub OAuth in Supabase; backend logic to create a `profiles` row + username on first
+     login.
+   - Seed 2–3 problems (Two Sum, Valid Parentheses, Reverse Linked List) with test cases and par
+     values.
+   - Implement the read-only endpoints: `GET /problems`, `GET /problems/{id}`,
+     `GET /leaderboard/{id}`, `GET /me/metrics` — these are thin query wrappers, no Docker or
+     OpenAI involved.
+
+2. **Docker person → `/backend/sandbox/*`, `/backend/routes/submit.py`**
+   - Build the generic Python sandbox image + runner harness (section 6): takes code + test
+     cases, runs with `--network none --memory 256m --cpus 0.5` and a wall-clock timeout, prints a
+     JSON pass/fail result.
+   - Implement `POST /submit`: shells out to the sandbox, parses the result, inserts one
+     `attempts` row every call, and inserts a `submissions` row on first pass (simple insert,
+     doesn't need deep Supabase knowledge — just the `attempts`/`submissions` schema from the
+     Supabase person).
+   - Only reads from `problems` (for `test_cases`/`function_signature`) — doesn't touch the
+     Supabase person's route files.
+
+3. **Full-stack generalist → all of `/frontend`, plus `/backend/routes/chat.py`, `review.py`**
+   - Owns the entire React+Vite UI from section 7: login/onboarding, problem list, problem
+     workspace (chat + code panel + live token counter + timer), results view, leaderboard page,
+     personal metrics page.
+   - Owns `POST /chat` and `POST /review` — the two OpenAI-glue endpoints — since iterating on
+     prompt quality is tightly coupled to the chat UI and best done by one person end-to-end.
+   - Calls the other two people's endpoints as a client; never edits their route files directly —
+     flag needed contract changes instead of hand-editing across boundaries.
+
+**Merge order for the demo:** get `GET /problems` + the problem list page working first (fastest
+path to something visibly working), then the workspace/chat/submit loop, then leaderboard and
+metrics last — they're pure reads once `submissions` has rows in it.
 
 ## 9. Assumptions / simplifications (call these out, don't silently relitigate them)
 
