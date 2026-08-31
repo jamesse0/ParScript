@@ -12,5 +12,10 @@ export function useTokenCounter(initialInput = 0, initialOutput = 0) {
     setOutputTokens((v) => v + output)
   }, [])
 
-  return { inputTokens, outputTokens, addUsage }
+  const reset = useCallback(() => {
+    setInputTokens(0)
+    setOutputTokens(0)
+  }, [])
+
+  return { inputTokens, outputTokens, addUsage, reset }
 }

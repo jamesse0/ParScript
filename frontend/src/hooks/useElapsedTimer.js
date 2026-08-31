@@ -29,5 +29,10 @@ export function useElapsedTimer(initialStartedAt = null) {
     [startedAt],
   )
 
-  return { elapsedSeconds, start, currentElapsedSeconds, startedAt }
+  const reset = useCallback(() => {
+    setStartedAt(null)
+    setElapsedSeconds(0)
+  }, [])
+
+  return { elapsedSeconds, start, currentElapsedSeconds, startedAt, reset }
 }

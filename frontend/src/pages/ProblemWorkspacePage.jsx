@@ -7,7 +7,7 @@ import { postReview } from '../api/review'
 import { getLeaderboard } from '../api/leaderboard'
 import { useTokenCounter } from '../hooks/useTokenCounter'
 import { useElapsedTimer } from '../hooks/useElapsedTimer'
-import { loadWorkspaceState, saveWorkspaceState } from '../lib/workspaceStorage'
+import { loadWorkspaceState, saveWorkspaceState, clearWorkspaceState } from '../lib/workspaceStorage'
 import ChatPanel from '../components/ChatPanel'
 import CodePanel from '../components/CodePanel'
 import TokenCounter from '../components/TokenCounter'
@@ -38,8 +38,8 @@ export default function ProblemWorkspacePage() {
   const [leaderboard, setLeaderboard] = useState(null)
   const [leaderboardError, setLeaderboardError] = useState(null)
 
-  const { inputTokens, outputTokens, addUsage } = useTokenCounter(saved?.inputTokens, saved?.outputTokens)
-  const { elapsedSeconds, start, currentElapsedSeconds, startedAt } = useElapsedTimer(saved?.startedAt)
+  const { inputTokens, outputTokens, addUsage, reset: resetTokens } = useTokenCounter(saved?.inputTokens, saved?.outputTokens)
+  const { elapsedSeconds, start, currentElapsedSeconds, startedAt, reset: resetTimer } = useElapsedTimer(saved?.startedAt)
 
   useEffect(() => {
     getProblem(problemId)
@@ -142,6 +142,20 @@ export default function ProblemWorkspacePage() {
     }
   }
 
+  const handleReplay = () => {
+    clearWorkspaceState(problemId)
+    setMessages([])
+    setCode(problem.starter_code)
+    setLastAttemptId(null)
+    setCodeDirty(false)
+    setTestResults(null)
+    setPassed(false)
+    setReviewComments(null)
+    setSubmitError(null)
+    resetTokens()
+    resetTimer()
+  }
+
   if (error) return <p className="error">{error}</p>
   if (!problem) return <p>Loading...</p>
 
@@ -172,6 +186,7 @@ export default function ProblemWorkspacePage() {
           <div className="workspace-results">
             <h2>{passed ? 'All tests passed' : 'Some tests failed'}</h2>
             <TestResultsList results={testResults} />
+            <button onClick={handleReplay}>Replay Problem</button>
           </div>
         )}
 
