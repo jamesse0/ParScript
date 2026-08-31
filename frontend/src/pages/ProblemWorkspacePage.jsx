@@ -4,6 +4,7 @@ import { getProblem } from '../api/problems'
 import { postChat } from '../api/chat'
 import { postSubmit } from '../api/submit'
 import { postReview } from '../api/review'
+import { getLeaderboard } from '../api/leaderboard'
 import { useTokenCounter } from '../hooks/useTokenCounter'
 import { useElapsedTimer } from '../hooks/useElapsedTimer'
 import ChatPanel from '../components/ChatPanel'
@@ -12,6 +13,7 @@ import TokenCounter from '../components/TokenCounter'
 import Timer from '../components/Timer'
 import TestResultsList from '../components/TestResultsList'
 import ReviewComments from '../components/ReviewComments'
+import LeaderboardTable from '../components/LeaderboardTable'
 
 export default function ProblemWorkspacePage() {
   const { problemId } = useParams()
@@ -30,6 +32,9 @@ export default function ProblemWorkspacePage() {
   const [reviewComments, setReviewComments] = useState(null)
   const [submitError, setSubmitError] = useState(null)
 
+  const [leaderboard, setLeaderboard] = useState(null)
+  const [leaderboardError, setLeaderboardError] = useState(null)
+
   const { inputTokens, outputTokens, addUsage } = useTokenCounter()
   const { elapsedSeconds, start, currentElapsedSeconds } = useElapsedTimer()
 
@@ -40,6 +45,19 @@ export default function ProblemWorkspacePage() {
         setCode(p.starter_code)
       })
       .catch((e) => setError(e.message))
+  }, [problemId])
+
+  const refreshLeaderboard = () => {
+    getLeaderboard(problemId)
+      .then((rows) => {
+        setLeaderboard(rows)
+        setLeaderboardError(null)
+      })
+      .catch((e) => setLeaderboardError(e.message))
+  }
+
+  useEffect(() => {
+    refreshLeaderboard()
   }, [problemId])
 
   const handleSend = async (content) => {
@@ -83,6 +101,7 @@ export default function ProblemWorkspacePage() {
       if (res.passed) {
         const reviewRes = await postReview(problem.id, code)
         setReviewComments(reviewRes.comments)
+        refreshLeaderboard()
       }
     } catch (e) {
       setSubmitError(e.message)
@@ -125,6 +144,13 @@ export default function ProblemWorkspacePage() {
         )}
 
         <ReviewComments comments={reviewComments} />
+
+        <div className="workspace-leaderboard">
+          <h2>Leaderboard</h2>
+          {leaderboardError && <p className="error">{leaderboardError}</p>}
+          {!leaderboard && !leaderboardError && <p>Loading...</p>}
+          {leaderboard && (leaderboard.length ? <LeaderboardTable rows={leaderboard} /> : <p>No submissions yet.</p>)}
+        </div>
       </div>
     </div>
   )
