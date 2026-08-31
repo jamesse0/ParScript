@@ -4,42 +4,92 @@ import { getProblem } from '../api/problems'
 import { postChat } from '../api/chat'
 import { postSubmit } from '../api/submit'
 import { postReview } from '../api/review'
+import { getLeaderboard } from '../api/leaderboard'
 import { useTokenCounter } from '../hooks/useTokenCounter'
 import { useElapsedTimer } from '../hooks/useElapsedTimer'
+import { loadWorkspaceState, saveWorkspaceState, clearWorkspaceState } from '../lib/workspaceStorage'
 import ChatPanel from '../components/ChatPanel'
 import CodePanel from '../components/CodePanel'
 import TokenCounter from '../components/TokenCounter'
 import Timer from '../components/Timer'
 import TestResultsList from '../components/TestResultsList'
 import ReviewComments from '../components/ReviewComments'
+import LeaderboardTable from '../components/LeaderboardTable'
 
 export default function ProblemWorkspacePage() {
   const { problemId } = useParams()
   const [problem, setProblem] = useState(null)
   const [error, setError] = useState(null)
 
-  const [messages, setMessages] = useState([])
-  const [code, setCode] = useState('')
-  const [lastAttemptId, setLastAttemptId] = useState(null)
-  const [codeDirty, setCodeDirty] = useState(false)
+  const [saved] = useState(() => loadWorkspaceState(problemId))
+
+  const [messages, setMessages] = useState(saved?.messages ?? [])
+  const [code, setCode] = useState(saved?.code ?? '')
+  const [lastAttemptId, setLastAttemptId] = useState(saved?.lastAttemptId ?? null)
+  const [codeDirty, setCodeDirty] = useState(saved?.codeDirty ?? false)
   const [sending, setSending] = useState(false)
 
   const [submitting, setSubmitting] = useState(false)
-  const [testResults, setTestResults] = useState(null)
-  const [passed, setPassed] = useState(false)
-  const [reviewComments, setReviewComments] = useState(null)
+  const [testResults, setTestResults] = useState(saved?.testResults ?? null)
+  const [passed, setPassed] = useState(saved?.passed ?? false)
+  const [reviewComments, setReviewComments] = useState(saved?.reviewComments ?? null)
   const [submitError, setSubmitError] = useState(null)
 
-  const { inputTokens, outputTokens, addUsage } = useTokenCounter()
-  const { elapsedSeconds, start, currentElapsedSeconds } = useElapsedTimer()
+  const [leaderboard, setLeaderboard] = useState(null)
+  const [leaderboardError, setLeaderboardError] = useState(null)
+
+  const { inputTokens, outputTokens, addUsage, reset: resetTokens } = useTokenCounter(saved?.inputTokens, saved?.outputTokens)
+  const { elapsedSeconds, start, currentElapsedSeconds, startedAt, reset: resetTimer } = useElapsedTimer(saved?.startedAt)
 
   useEffect(() => {
     getProblem(problemId)
       .then((p) => {
         setProblem(p)
-        setCode(p.starter_code)
+        if (saved?.code === undefined) {
+          setCode(p.starter_code)
+        }
       })
       .catch((e) => setError(e.message))
+  }, [problemId, saved])
+
+  useEffect(() => {
+    saveWorkspaceState(problemId, {
+      messages,
+      code,
+      lastAttemptId,
+      codeDirty,
+      testResults,
+      passed,
+      reviewComments,
+      inputTokens,
+      outputTokens,
+      startedAt,
+    })
+  }, [
+    problemId,
+    messages,
+    code,
+    lastAttemptId,
+    codeDirty,
+    testResults,
+    passed,
+    reviewComments,
+    inputTokens,
+    outputTokens,
+    startedAt,
+  ])
+
+  const refreshLeaderboard = () => {
+    getLeaderboard(problemId)
+      .then((rows) => {
+        setLeaderboard(rows)
+        setLeaderboardError(null)
+      })
+      .catch((e) => setLeaderboardError(e.message))
+  }
+
+  useEffect(() => {
+    refreshLeaderboard()
   }, [problemId])
 
   const handleSend = async (content) => {
@@ -83,12 +133,27 @@ export default function ProblemWorkspacePage() {
       if (res.passed) {
         const reviewRes = await postReview(problem.id, code)
         setReviewComments(reviewRes.comments)
+        refreshLeaderboard()
       }
     } catch (e) {
       setSubmitError(e.message)
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const handleReplay = () => {
+    clearWorkspaceState(problemId)
+    setMessages([])
+    setCode(problem.starter_code)
+    setLastAttemptId(null)
+    setCodeDirty(false)
+    setTestResults(null)
+    setPassed(false)
+    setReviewComments(null)
+    setSubmitError(null)
+    resetTokens()
+    resetTimer()
   }
 
   if (error) return <p className="error">{error}</p>
@@ -121,10 +186,18 @@ export default function ProblemWorkspacePage() {
           <div className="workspace-results">
             <h2>{passed ? 'All tests passed' : 'Some tests failed'}</h2>
             <TestResultsList results={testResults} />
+            <button onClick={handleReplay}>Replay Problem</button>
           </div>
         )}
 
         <ReviewComments comments={reviewComments} />
+
+        <div className="workspace-leaderboard">
+          <h2>Leaderboard</h2>
+          {leaderboardError && <p className="error">{leaderboardError}</p>}
+          {!leaderboard && !leaderboardError && <p>Loading...</p>}
+          {leaderboard && (leaderboard.length ? <LeaderboardTable rows={leaderboard} /> : <p>No submissions yet.</p>)}
+        </div>
       </div>
     </div>
   )
