@@ -18,14 +18,16 @@ _client: AsyncOpenAI | None = None
 # Grab fenced code blocks: ```python / ```py / bare ``` ... ```
 _CODE_FENCE = re.compile(r"```[ \t]*(?:python|py)?[ \t]*\r?\n(.*?)```", re.DOTALL | re.IGNORECASE)
 
-# Deliberately problem-agnostic. Par Prompt tests whether the USER can describe
-# the problem well enough to get a correct solution -- so the system prompt only
-# fixes the output format and never carries the problem spec.
+# Carries the required function signature (a grading contract -- the sandbox
+# harness calls the function by that exact name) but NOT the problem spec. Par
+# Prompt tests whether the USER can describe what the function should do.
 _CHAT_SYSTEM = """You are a Python coding assistant. The user describes a programming task; you write code that does exactly what they describe.
 
+- Your solution MUST define exactly this function -- same name and parameters -- as the entry point:
+      {function_signature}
+- Everything else about the task (what it computes, return shape, edge cases, constraints) comes ONLY from the user's messages. Don't infer unstated behavior or assume it's a specific well-known problem unless they say so.
 - Give a brief explanation, then the COMPLETE solution as a single ```python code block.
 - Standard library only. No test code, no input parsing, no `if __name__ == "__main__"` block.
-- Work only from what the user tells you. Don't assume unstated requirements or that it's a specific well-known problem unless they say so.
 - When the user asks for a change, return the full updated code again, not a diff."""
 
 _REVIEW_SYSTEM = """You are a senior engineer reviewing a Python solution that already passes its tests.
@@ -63,13 +65,18 @@ def _sanitize_history(message_history: list[dict]) -> list[dict]:
     return clean
 
 
-async def chat_completion(message_history: list[dict]) -> tuple[str, str, int, int]:
+async def chat_completion(
+    function_signature: str, message_history: list[dict]
+) -> tuple[str, str, int, int]:
     """-> (reply, code, input_tokens, output_tokens) for this one call.
 
-    The problem is NOT passed in on purpose -- the user's messages are the only
-    source of the spec (that's what Par Prompt measures).
+    Only `function_signature` crosses the boundary from the problem -- the
+    required entry-point name/params, which the grader depends on. The task
+    description is NOT passed; the user's messages are the only source of the
+    spec (that's what Par Prompt measures).
     """
-    messages = [{"role": "system", "content": _CHAT_SYSTEM}, *_sanitize_history(message_history)]
+    system = _CHAT_SYSTEM.format(function_signature=function_signature)
+    messages = [{"role": "system", "content": system}, *_sanitize_history(message_history)]
 
     try:
         resp = await _get_client().chat.completions.create(

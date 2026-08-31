@@ -22,6 +22,7 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 from services.openai_client import (  # noqa: E402
+    _CHAT_SYSTEM,
     OpenAICallError,
     _sanitize_history,
     extract_code,
@@ -51,6 +52,17 @@ class TestExtractCode(unittest.TestCase):
     def test_no_fence_returns_empty(self):
         self.assertEqual(extract_code("no code here, sorry"), "")
         self.assertEqual(extract_code(""), "")
+
+
+class TestChatSystemPrompt(unittest.TestCase):
+    def test_signature_is_injected_but_not_a_spec_placeholder(self):
+        sig = "def two_sum(nums: list[int], target: int) -> list[int]:"
+        rendered = _CHAT_SYSTEM.format(function_signature=sig)
+        self.assertIn(sig, rendered)
+        self.assertNotIn("{function_signature}", rendered)
+        # the prompt must not carry problem-spec fields
+        self.assertNotIn("{description}", rendered)
+        self.assertNotIn("{title}", rendered)
 
 
 class TestSanitizeHistory(unittest.TestCase):
@@ -132,9 +144,11 @@ class TestChatEndToEnd(unittest.TestCase):
             "[i, j] with i < j. Exactly one solution exists."
         )
 
+        sig = self.problem["function_signature"]
+
         # turn 1
         reply1, code1, in1, out1 = asyncio.run(
-            chat_completion([{"role": "user", "content": prompt1}])
+            chat_completion(sig, [{"role": "user", "content": prompt1}])
         )
         self.assertGreater(in1, 0)
         self.assertGreater(out1, 0)
@@ -157,7 +171,7 @@ class TestChatEndToEnd(unittest.TestCase):
             {"role": "assistant", "content": reply1},
             {"role": "user", "content": "Add a docstring and keep it O(n) time."},
         ]
-        reply2, code2, in2, _ = asyncio.run(chat_completion(history2))
+        reply2, code2, in2, _ = asyncio.run(chat_completion(sig, history2))
         self.assertIn("def two_sum", code2)
         self.assertGreater(in2, in1)  # longer context -> more input tokens
 

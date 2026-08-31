@@ -24,8 +24,8 @@ router = APIRouter(tags=["chat"])
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat(body: ChatRequest, user=Depends(require_profile)) -> ChatResponse:
-    # Validate the problem_id (workspace context + attempts FK). The problem
-    # text is deliberately NOT sent to the model -- see services/openai_client.py.
+    # The task description is deliberately NOT sent to the model; only the
+    # function signature (a grading contract) is -- see services/openai_client.py.
     problem = get_problem(body.problem_id)
     if problem is None:
         raise HTTPException(status_code=404, detail="problem not found")
@@ -35,7 +35,9 @@ async def chat(body: ChatRequest, user=Depends(require_profile)) -> ChatResponse
         raise HTTPException(status_code=422, detail="message_history must end with a user message")
 
     try:
-        reply, code, input_tokens, output_tokens = await chat_completion(history)
+        reply, code, input_tokens, output_tokens = await chat_completion(
+            problem["function_signature"], history
+        )
     except OpenAICallError as exc:
         raise HTTPException(status_code=502, detail=f"OpenAI call failed: {exc}")
 
