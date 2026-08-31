@@ -10,7 +10,10 @@ uses Supabase for auth.
 `submissions`, the `leaderboard_entries` view, RLS). Problem seed data is JSON, loaded by a
 script — see `backend/db/problems.json` and `backend/db/seed_problems.py`.
 
-### Option A — Supabase CLI (most repeatable)
+### Apply the schema
+
+Either paste `migrations/0001_init.sql` into the dashboard **SQL Editor** and run it, or use
+the Supabase CLI:
 
 ```sh
 # once, if supabase/ isn't a CLI project yet:
@@ -19,19 +22,16 @@ supabase init                        # keep the existing migrations/ folder
 supabase link --project-ref <ref>    # from the dashboard URL
 supabase db push                     # apply migrations/ to the linked project
 #   ...or, against a local dev stack:  supabase db reset
-
-cd backend && python db/seed_problems.py   # load / refresh the problems
 ```
 
-`supabase db reset` re-runs every migration from scratch; the seed step is a separate
-command because the problems live in JSON, not SQL.
-
-### Option B — psql, no CLI
+### Seed / refresh the problems
 
 ```sh
-export SUPABASE_DB_URL="postgresql://postgres:<pw>@db.<ref>.supabase.co:5432/postgres"
-backend/db/apply.sh          # runs the migration, then seed_problems.py
+cd backend && python db/seed_problems.py
 ```
+
+Uses `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` from `backend/.env` — no database password
+needed. Run it any time; rows are upserted on `slug`.
 
 ### Adding / editing problems later
 
@@ -67,5 +67,4 @@ A Supabase login does **not** create a `profiles` row. On first login the fronte
 ## 4. Backend env
 
 Copy `backend/.env.example` → `backend/.env` and fill in `SUPABASE_URL`,
-`SUPABASE_SERVICE_KEY`, `SUPABASE_JWT_SECRET` (dashboard → Project Settings → API), plus
-`SUPABASE_DB_URL` if you use Option B.
+`SUPABASE_SERVICE_KEY`, and `SUPABASE_JWT_SECRET` (dashboard → Project Settings → API).
