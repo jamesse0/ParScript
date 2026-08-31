@@ -44,11 +44,14 @@ def _build_combined_source(code: str, function_name: str, test_cases: list[dict]
         raise SandboxError("runner.py template is missing the insertion marker")
 
     before, after = template.split(_INSERTION_MARKER, 1)
+    # Embed test_cases as a JSON string the harness decodes at runtime, NOT as a
+    # raw literal: json.dumps() emits true/false/null, which aren't valid Python
+    # (a boolean expected_output would blow up the harness with a NameError).
     return (
         f"{before}{_INSERTION_MARKER}\n"
         f"{code}\n\n"
         f"__FUNCTION_NAME__ = {function_name!r}\n"
-        f"__TEST_CASES__ = {json.dumps(test_cases)}\n"
+        f"__TEST_CASES__ = json.loads({json.dumps(test_cases)!r})\n"
         f"{after}"
     )
 
