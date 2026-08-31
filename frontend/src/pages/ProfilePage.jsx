@@ -35,7 +35,7 @@ export default function ProfilePage() {
             Member since {new Date(profile.created_at).toLocaleDateString()}
           </p>
         </div>
-        <button onClick={handleSignOut} disabled={signingOut}>
+        <button className="btn btn-outline" onClick={handleSignOut} disabled={signingOut}>
           {signingOut ? 'Signing out...' : 'Log out'}
         </button>
       </div>

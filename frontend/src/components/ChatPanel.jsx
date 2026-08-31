@@ -28,7 +28,7 @@ export default function ChatPanel({ messages, onSend, sending }) {
           placeholder="Describe the approach or ask for a fix..."
           rows={3}
         />
-        <button type="submit" disabled={sending || !draft.trim()}>
+        <button type="submit" className="btn btn-accent" disabled={sending || !draft.trim()}>
           Send
         </button>
       </form>

@@ -33,7 +33,7 @@ export default function UsernamePrompt({ onSubmit }) {
           maxLength={30}
           required
         />
-        <button type="submit" disabled={busy || username.trim().length < 3}>
+        <button type="submit" className="btn btn-accent" disabled={busy || username.trim().length < 3}>
           Continue
         </button>
       </form>

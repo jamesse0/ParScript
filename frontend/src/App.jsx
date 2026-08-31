@@ -11,8 +11,11 @@ export default function App() {
   return (
     <>
       <nav className="app-nav">
-        <Link to="/problems">Problems</Link>
-        <Link to="/profile">Profile</Link>
+        <Link to="/problems" className="brand">Par Prompt</Link>
+        <div className="nav-links">
+          <Link to="/problems">Problems</Link>
+          <Link to="/profile">Profile</Link>
+        </div>
       </nav>
       <Routes>
         <Route path="/" element={<Navigate to="/problems" replace />} />

@@ -10,7 +10,7 @@ export default function LoginPage() {
     <div className="login-page">
       <h1>Par Prompt</h1>
       <p>Solve algorithm problems by prompting an AI — scored on token efficiency.</p>
-      <button onClick={signInWithGithub}>Continue with GitHub</button>
+      <button className="btn btn-accent" onClick={signInWithGithub}>Continue with GitHub</button>
     </div>
   )
 }

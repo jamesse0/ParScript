@@ -112,7 +112,7 @@ export default function ProblemWorkspacePage() {
         <ChatPanel messages={messages} onSend={handleSend} sending={sending} />
         <CodePanel code={code} onChange={handleCodeChange} />
 
-        <button onClick={handleSubmit} disabled={submitting}>
+        <button className="btn btn-accent" onClick={handleSubmit} disabled={submitting}>
           {submitting ? 'Running...' : 'Submit'}
         </button>
         {submitError && <p className="error">{submitError}</p>}
