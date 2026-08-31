@@ -1,0 +1,48 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; background: #0f1115; color: #e6e6e6; }
+a { color: #7dd3fc; }
+
+.app-nav { display: flex; gap: 1.5rem; padding: 1rem 1.5rem; border-bottom: 1px solid #2a2d34; }
+
+.problem-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+.problem-card { display: flex; flex-direction: column; gap: 0.4rem; padding: 1rem; border: 1px solid #2a2d34; border-radius: 8px; text-decoration: none; color: inherit; }
+
+.tag { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.8rem; width: fit-content; }
+.tag-easy { background: #14532d; }
+.tag-medium { background: #713f12; }
+.tag-hard { background: #7f1d1d; }
+
+.difficulty-filter { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.difficulty-filter button { padding: 0.3rem 0.8rem; border-radius: 6px; border: 1px solid #2a2d34; background: transparent; color: inherit; cursor: pointer; }
+.difficulty-filter button.active { background: #1e3a5f; }
+
+.workspace-page { display: grid; grid-template-columns: 1fr 1.4fr; gap: 1.5rem; padding: 1.5rem; }
+.workspace-main { display: flex; flex-direction: column; gap: 1rem; }
+.workspace-stats { display: flex; gap: 1.5rem; align-items: center; }
+
+.chat-panel { border: 1px solid #2a2d34; border-radius: 8px; padding: 0.75rem; }
+.chat-messages { max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; }
+.chat-message p { margin: 0.1rem 0 0; white-space: pre-wrap; }
+.chat-input { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+.chat-input textarea { flex: 1; }
+
+.code-editor { width: 100%; font-family: 'Fira Code', monospace; background: #16181d; color: #e6e6e6; border: 1px solid #2a2d34; border-radius: 8px; padding: 0.75rem; }
+
+.test-results { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.test-results li { border-radius: 6px; padding: 0.5rem; }
+.test-results li.passed { background: #14532d33; }
+.test-results li.failed { background: #7f1d1d33; }
+.test-results code { display: block; font-size: 0.8rem; }
+
+.error { color: #f87171; }
+
+.login-page { display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; padding: 3rem; max-width: 480px; }
+
+.metrics-summary { display: flex; gap: 2rem; margin: 1rem 0; }
+.metrics-summary .value { display: block; font-size: 1.8rem; font-weight: 600; }
+.metrics-summary .label { color: #9ca3af; font-size: 0.85rem; }
+.metrics-by-difficulty { list-style: none; padding: 0; display: flex; gap: 1rem; }
+.metrics-by-difficulty li { display: flex; align-items: center; gap: 0.5rem; }
+
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid #2a2d34; }

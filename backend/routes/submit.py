@@ -16,7 +16,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from dataaccess.problems import get_problem
 from dataaccess.submissions import insert_submission
-from deps import get_current_user
+from deps import require_profile
 from schemas import SubmitRequest, SubmitResponse
 from services.sandbox_runner import SandboxError, run_submission
 
@@ -24,7 +24,7 @@ router = APIRouter(tags=["submit"])
 
 
 @router.post("/submit", response_model=SubmitResponse)
-async def submit(body: SubmitRequest, user=Depends(get_current_user)) -> SubmitResponse:
+async def submit(body: SubmitRequest, user=Depends(require_profile)) -> SubmitResponse:
     problem = get_problem(body.problem_id)
     if problem is None:
         raise HTTPException(status_code=404, detail="problem not found")
