@@ -5,14 +5,14 @@ import LoginPage from './pages/LoginPage'
 import ProblemListPage from './pages/ProblemListPage'
 import ProblemWorkspacePage from './pages/ProblemWorkspacePage'
 import LeaderboardPage from './pages/LeaderboardPage'
-import MetricsPage from './pages/MetricsPage'
+import ProfilePage from './pages/ProfilePage'
 
 export default function App() {
   return (
     <>
       <nav className="app-nav">
         <Link to="/problems">Problems</Link>
-        <Link to="/metrics">My metrics</Link>
+        <Link to="/profile">Profile</Link>
       </nav>
       <Routes>
         <Route path="/" element={<Navigate to="/problems" replace />} />
@@ -30,11 +30,11 @@ export default function App() {
           }
         />
         <Route
-          path="/metrics"
+          path="/profile"
           element={
             <RequireAuth>
               <OnboardingGate>
-                <MetricsPage />
+                <ProfilePage />
               </OnboardingGate>
             </RequireAuth>
           }

@@ -38,6 +38,13 @@ a { color: #7dd3fc; }
 
 .login-page { display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; padding: 3rem; max-width: 480px; }
 
+.profile-page { padding: 1.5rem; }
+.profile-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.profile-header h1 { margin: 0; }
+.profile-meta { color: #9ca3af; font-size: 0.85rem; margin: 0.25rem 0 0; }
+.profile-header button { padding: 0.4rem 0.9rem; border-radius: 6px; border: 1px solid #2a2d34; background: transparent; color: inherit; cursor: pointer; }
+.profile-header button:hover { background: #1e222a; }
+
 .metrics-summary { display: flex; gap: 2rem; margin: 1rem 0; }
 .metrics-summary .value { display: block; font-size: 1.8rem; font-weight: 600; }
 .metrics-summary .label { color: #9ca3af; font-size: 0.85rem; }
