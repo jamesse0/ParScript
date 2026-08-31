@@ -7,10 +7,32 @@ Shared by routes/problems.py (full detail) and routes/submit.py
 Owner: Supabase person (DESIGN.md §8.1).
 """
 
+from dataaccess.supabase_client import get_supabase
 
-def list_problems(difficulty: str | None = None):
-    raise NotImplementedError
+_SUMMARY_COLS = "id, slug, title, difficulty, par_tokens"
+_DETAIL_COLS = (
+    "id, slug, title, description, difficulty, par_tokens, "
+    "function_signature, starter_code, test_cases"
+)
 
 
-def get_problem(problem_id: str):
-    raise NotImplementedError
+def list_problems(difficulty: str | None = None) -> list[dict]:
+    """Problem summaries, oldest first, optionally filtered by difficulty."""
+    query = get_supabase().table("problems").select(_SUMMARY_COLS).order("id")
+    if difficulty:
+        query = query.eq("difficulty", difficulty)
+    return query.execute().data or []
+
+
+def get_problem(problem_id: int | str) -> dict | None:
+    """Full detail for one problem, or None if it doesn't exist."""
+    rows = (
+        get_supabase()
+        .table("problems")
+        .select(_DETAIL_COLS)
+        .eq("id", problem_id)
+        .limit(1)
+        .execute()
+        .data
+    )
+    return rows[0] if rows else None

@@ -1,1 +1,7 @@
-.env.example
+# Secrets — .env.example IS committed as the template, .env is not
+.env
+
+# Virtualenv / bytecode
+.venv/
+__pycache__/
+*.pyc

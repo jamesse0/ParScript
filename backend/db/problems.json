@@ -1,0 +1,49 @@
+[
+  {
+    "slug": "two-sum",
+    "title": "Two Sum",
+    "description": "Given an array of integers `nums` and an integer `target`, return the indices of the two numbers that add up to `target`. Each input has exactly one solution, and you may not use the same element twice. Return the indices in ascending order.",
+    "difficulty": "easy",
+    "par_tokens": 300,
+    "function_signature": "def two_sum(nums: list[int], target: int) -> list[int]:",
+    "starter_code": "def two_sum(nums: list[int], target: int) -> list[int]:\n    # your code here\n    pass\n",
+    "test_cases": [
+      { "input": { "nums": [2, 7, 11, 15], "target": 9 }, "expected_output": [0, 1] },
+      { "input": { "nums": [3, 2, 4], "target": 6 }, "expected_output": [1, 2] },
+      { "input": { "nums": [3, 3], "target": 6 }, "expected_output": [0, 1] },
+      { "input": { "nums": [-1, -2, -3, -4, -5], "target": -8 }, "expected_output": [2, 4] }
+    ]
+  },
+  {
+    "slug": "valid-parentheses",
+    "title": "Valid Parentheses",
+    "description": "Given a string `s` containing just the characters `'('`, `')'`, `'{'`, `'}'`, `'['` and `']'`, determine if the input string is valid. A string is valid if open brackets are closed by the same type of bracket and in the correct order.",
+    "difficulty": "easy",
+    "par_tokens": 350,
+    "function_signature": "def is_valid(s: str) -> bool:",
+    "starter_code": "def is_valid(s: str) -> bool:\n    # your code here\n    pass\n",
+    "test_cases": [
+      { "input": { "s": "()" }, "expected_output": true },
+      { "input": { "s": "()[]{}" }, "expected_output": true },
+      { "input": { "s": "(]" }, "expected_output": false },
+      { "input": { "s": "([)]" }, "expected_output": false },
+      { "input": { "s": "{[]}" }, "expected_output": true },
+      { "input": { "s": "" }, "expected_output": true }
+    ]
+  },
+  {
+    "slug": "reverse-linked-list",
+    "title": "Reverse Linked List",
+    "description": "Given the `head` of a singly linked list, reverse the list and return its head. The list is represented as a plain array of node values in order; return the reversed list as an array.",
+    "difficulty": "medium",
+    "par_tokens": 450,
+    "function_signature": "def reverse_list(head: list[int]) -> list[int]:",
+    "starter_code": "def reverse_list(head: list[int]) -> list[int]:\n    # `head` is the list of node values in order; return them reversed.\n    # your code here\n    pass\n",
+    "test_cases": [
+      { "input": { "head": [1, 2, 3, 4, 5] }, "expected_output": [5, 4, 3, 2, 1] },
+      { "input": { "head": [1, 2] }, "expected_output": [2, 1] },
+      { "input": { "head": [] }, "expected_output": [] },
+      { "input": { "head": [7] }, "expected_output": [7] }
+    ]
+  }
+]

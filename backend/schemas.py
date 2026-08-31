@@ -34,6 +34,9 @@ class ChatResponse(BaseModel):
     code: str
     input_tokens: int
     output_tokens: int
+    # id of the attempts row recorded for this chat call (routes/chat.py must
+    # insert one per call via dataaccess.attempts.insert_attempt).
+    attempt_id: str
 
 
 # --- POST /submit -------------------------------------------------------
@@ -45,12 +48,17 @@ class SubmitRequest(BaseModel):
     input_tokens: int
     output_tokens: int
     elapsed_seconds: float
+    # the chat attempt this code came from, if the user didn't hand-write it
+    attempt_id: str | None = None
 
 
 class SubmitResponse(BaseModel):
     passed: bool
     test_results: list[TestResult]
-    attempt_id: str
+    # id of the submissions row recorded for this Run-tests click
+    submission_id: str
+    # echoes SubmitRequest.attempt_id when the tested code came from a chat attempt
+    attempt_id: str | None = None
 
 
 # --- POST /review -----------------------------------------------------
@@ -69,7 +77,7 @@ class ReviewResponse(BaseModel):
 
 
 class ProblemSummary(BaseModel):
-    id: str
+    id: int
     slug: str
     title: str
     difficulty: str  # "easy" | "medium" | "hard"
@@ -111,3 +119,16 @@ class MetricsResponse(BaseModel):
     avg_tokens_vs_par: float
     avg_tokens_vs_par_by_difficulty: dict[str, float]
     history: list[MetricsHistoryRow]
+
+
+# --- profiles / onboarding (DESIGN.md §4, §7) -----------------------
+
+
+class OnboardRequest(BaseModel):
+    username: str
+
+
+class MeResponse(BaseModel):
+    id: str
+    username: str
+    created_at: str
