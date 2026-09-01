@@ -15,6 +15,7 @@ import Timer from '../components/Timer'
 import TestResultsList from '../components/TestResultsList'
 import ReviewComments from '../components/ReviewComments'
 import LeaderboardTable from '../components/LeaderboardTable'
+import Markdown from '../components/Markdown'
 
 export default function ProblemWorkspacePage() {
   const { problemId } = useParams()
@@ -26,7 +27,6 @@ export default function ProblemWorkspacePage() {
   const [messages, setMessages] = useState(saved?.messages ?? [])
   const [code, setCode] = useState(saved?.code ?? '')
   const [lastAttemptId, setLastAttemptId] = useState(saved?.lastAttemptId ?? null)
-  const [codeDirty, setCodeDirty] = useState(saved?.codeDirty ?? false)
   const [sending, setSending] = useState(false)
 
   const [submitting, setSubmitting] = useState(false)
@@ -57,7 +57,6 @@ export default function ProblemWorkspacePage() {
       messages,
       code,
       lastAttemptId,
-      codeDirty,
       testResults,
       passed,
       reviewComments,
@@ -70,7 +69,6 @@ export default function ProblemWorkspacePage() {
     messages,
     code,
     lastAttemptId,
-    codeDirty,
     testResults,
     passed,
     reviewComments,
@@ -101,7 +99,6 @@ export default function ProblemWorkspacePage() {
       const res = await postChat(problem.id, newMessages)
       setMessages([...newMessages, { role: 'assistant', content: res.reply }])
       setCode(res.code)
-      setCodeDirty(false)
       setLastAttemptId(res.attempt_id)
       addUsage(res.input_tokens, res.output_tokens)
     } catch (e) {
@@ -109,11 +106,6 @@ export default function ProblemWorkspacePage() {
     } finally {
       setSending(false)
     }
-  }
-
-  const handleCodeChange = (value) => {
-    setCode(value)
-    setCodeDirty(true)
   }
 
   const handleSubmit = async () => {
@@ -126,7 +118,7 @@ export default function ProblemWorkspacePage() {
         inputTokens,
         outputTokens,
         elapsedSeconds: currentElapsedSeconds(),
-        attemptId: codeDirty ? null : lastAttemptId,
+        attemptId: lastAttemptId,
       })
       setTestResults(res.test_results)
       setPassed(res.passed)
@@ -147,7 +139,6 @@ export default function ProblemWorkspacePage() {
     setMessages([])
     setCode(problem.starter_code)
     setLastAttemptId(null)
-    setCodeDirty(false)
     setTestResults(null)
     setPassed(false)
     setReviewComments(null)
@@ -161,11 +152,20 @@ export default function ProblemWorkspacePage() {
 
   return (
     <div className="workspace-page">
-      <div className="workspace-description">
-        <h1>{problem.title}</h1>
-        <span className={`tag tag-${problem.difficulty}`}>{problem.difficulty}</span>
-        <p>{problem.description}</p>
-        <pre>{problem.function_signature}</pre>
+      <div className="workspace-sidebar">
+        <div className="workspace-description">
+          <h1>{problem.title}</h1>
+          <span className={`tag tag-${problem.difficulty}`}>{problem.difficulty}</span>
+          <Markdown text={problem.description} />
+          <pre>{problem.function_signature}</pre>
+        </div>
+
+        <div className="workspace-leaderboard">
+          <h2>Leaderboard</h2>
+          {leaderboardError && <p className="error">{leaderboardError}</p>}
+          {!leaderboard && !leaderboardError && <p>Loading...</p>}
+          {leaderboard && (leaderboard.length ? <LeaderboardTable rows={leaderboard} /> : <p>No submissions yet.</p>)}
+        </div>
       </div>
 
       <div className="workspace-main">
@@ -175,7 +175,7 @@ export default function ProblemWorkspacePage() {
         </div>
 
         <ChatPanel messages={messages} onSend={handleSend} sending={sending} />
-        <CodePanel code={code} onChange={handleCodeChange} />
+        <CodePanel code={code} />
 
         <button className="btn btn-accent" onClick={handleSubmit} disabled={submitting}>
           {submitting ? 'Running...' : 'Submit'}
@@ -186,18 +186,11 @@ export default function ProblemWorkspacePage() {
           <div className="workspace-results">
             <h2>{passed ? 'All tests passed' : 'Some tests failed'}</h2>
             <TestResultsList results={testResults} />
-            <button onClick={handleReplay}>Replay Problem</button>
+            <button className="btn btn-outline" onClick={handleReplay}>Replay Problem</button>
           </div>
         )}
 
         <ReviewComments comments={reviewComments} />
-
-        <div className="workspace-leaderboard">
-          <h2>Leaderboard</h2>
-          {leaderboardError && <p className="error">{leaderboardError}</p>}
-          {!leaderboard && !leaderboardError && <p>Loading...</p>}
-          {leaderboard && (leaderboard.length ? <LeaderboardTable rows={leaderboard} /> : <p>No submissions yet.</p>)}
-        </div>
       </div>
     </div>
   )

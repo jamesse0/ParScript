@@ -1,12 +1,12 @@
-export default function CodePanel({ code, onChange }) {
+export default function CodePanel({ code }) {
   return (
     <div className="code-panel">
       <textarea
         className="code-editor"
         value={code}
-        onChange={(e) => onChange(e.target.value)}
+        readOnly
         spellCheck={false}
-        rows={20}
+        rows={12}
       />
     </div>
   )

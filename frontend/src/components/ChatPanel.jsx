@@ -26,7 +26,7 @@ export default function ChatPanel({ messages, onSend, sending }) {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Describe the approach or ask for a fix..."
-          rows={3}
+          rows={7}
         />
         <button type="submit" className="btn btn-accent" disabled={sending || !draft.trim()}>
           Send

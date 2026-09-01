@@ -173,13 +173,23 @@ button {
 .difficulty-hard, .tag-hard { background: var(--hard-bg); color: var(--hard-text); }
 
 /* ---------- workspace ---------- */
-.workspace-page { display: grid; grid-template-columns: 1fr 1.4fr; gap: 1.5rem; padding: 1.75rem; max-width: 1200px; margin: 0 auto; }
+.workspace-page {
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) 1fr;
+  gap: 1.5rem;
+  align-items: start;
+  padding: 1.25rem 1rem;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+.workspace-sidebar { display: flex; flex-direction: column; gap: 1.25rem; }
 .workspace-description {
   padding: 1.5rem;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  height: fit-content;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .workspace-description h1 { margin: 0 0 0.6rem; font-size: 1.4rem; }
 .workspace-description pre {
@@ -189,6 +199,42 @@ button {
   padding: 0.75rem;
   overflow-x: auto;
   font-size: 0.85rem;
+}
+
+/* ---------- rendered markdown (problem descriptions) ---------- */
+.markdown { color: var(--text); line-height: 1.55; }
+.markdown > *:first-child { margin-top: 0; }
+.markdown > *:last-child { margin-bottom: 0; }
+.markdown p { margin: 0 0 0.85rem; }
+.markdown ul, .markdown ol { margin: 0 0 0.85rem; padding-left: 1.3rem; }
+.markdown li { margin-bottom: 0.3rem; }
+.markdown li > p { margin-bottom: 0.3rem; }
+.markdown strong { font-weight: 700; }
+.markdown h1, .markdown h2, .markdown h3 { margin: 1.1rem 0 0.5rem; font-size: 1rem; }
+
+.markdown code {
+  font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+}
+
+.markdown pre {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  overflow-x: auto;
+  margin: 0 0 0.85rem;
+}
+.markdown pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.85rem;
+  white-space: pre;
 }
 .workspace-main { display: flex; flex-direction: column; gap: 1.1rem; }
 .workspace-stats {
@@ -202,22 +248,29 @@ button {
 }
 .workspace-results { padding: 1rem 1.25rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
 .workspace-results h2 { margin-top: 0; font-size: 1.05rem; }
+.workspace-results .btn { margin-top: 0.85rem; }
+
+.workspace-leaderboard { padding: 1.25rem 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.workspace-leaderboard h2 { margin-top: 0; font-size: 1.05rem; }
 
 /* ---------- chat ---------- */
 .chat-panel { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; background: var(--surface); }
-.chat-messages { max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; }
+.chat-messages { max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; }
+.chat-messages:empty { display: none; }
 .chat-message { padding: 0.6rem 0.8rem; border-radius: var(--radius-md); background: var(--surface-muted); }
 .chat-message.chat-assistant { background: var(--accent-soft); }
 .chat-message strong { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
 .chat-message p { margin: 0.2rem 0 0; white-space: pre-wrap; }
 .chat-pending { color: var(--text-muted); font-style: italic; }
-.chat-input { display: flex; gap: 0.6rem; margin-top: 0.75rem; }
+.chat-input { display: flex; align-items: flex-end; gap: 0.6rem; margin-top: 0.75rem; }
 .chat-input textarea {
   flex: 1;
+  min-height: 180px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 0.6rem 0.75rem;
   font-family: inherit;
+  font-size: 0.9rem;
   resize: vertical;
 }
 .chat-input textarea:focus { outline: none; border-color: var(--accent); }
@@ -233,6 +286,8 @@ button {
   border: none;
   padding: 1rem;
   display: block;
+  cursor: default;
+  resize: none;
 }
 .code-editor:focus { outline: none; }
 
