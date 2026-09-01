@@ -276,5 +276,16 @@
             { "input": [[0, 1]], "expected_output": true },
             { "input": [[0, 2]], "expected_output": false }
         ]
+    },
+    {
+        "slug": "cache-with-ttl-and-lru",
+        "title": "In-Memory Cache with TTL + LRU Eviction",
+        "description": "Implement a class `Cache` in a single file that acts as a fixed-capacity in-memory key-value store combining **TTL expiry** and **LRU eviction**.\n\n**Constructor:** `Cache(capacity: int)` — `capacity` is the max number of live items the cache may hold.\n\nUse `time.time()` (standard library) to record insertion times and check expiry.\n\n**Methods:**\n- `put(key, value, ttl_seconds=None)` — inserts or overwrites `key`. `ttl_seconds=None` means the item never expires. If inserting a *new* key would exceed `capacity`, evict an item first (see eviction rule below).\n- `get(key)` — returns the value for `key`, or `None` if the key doesn't exist or is expired.\n- `size()` — returns the number of currently live (non-expired) items.\n\n**Behavioral rules — all of these are tested and each is easy to miss if not explicitly followed:**\n1. An item is 'expired' once the current time is strictly greater than `insert_time + ttl_seconds`. An expired item must be treated as absent by `get()`, even if it hasn't been physically evicted from internal storage yet.\n2. Only `get()` on a **live (non-expired)** key updates that key's recency for LRU purposes. Calling `get()` on an already-expired key does **not** refresh its position, and does not prevent it from being evicted.\n3. Calling `put()` on a key that **already exists** overwrites its value and TTL, but does **not** change its LRU recency position (it stays wherever it was in the eviction order).\n4. When capacity is exceeded by inserting a brand-new key, prefer evicting an already-expired item over a true least-recently-used live item. If no expired items exist, evict the single least-recently-used live item.\n5. `size()` only counts live, non-expired items.\n\n**Example:** With `capacity=2`, `put(\"a\", 1)`, `put(\"b\", 2)`, then `get(\"a\")` (marks 'a' as more recently used than 'b'), then `put(\"c\", 3)` — this evicts `\"b\"`, not `\"a\"`, because `\"a\"`'s recency was refreshed by the `get()`.\n\nClass and method names must match exactly: `Cache`, `put`, `get`, `size`, and the constructor signature `Cache(capacity)`.",
+        "difficulty": "system_design",
+        "par_tokens": 500,
+        "function_signature": "class Cache:\n    def __init__(self, capacity: int):\n        ...\n\n    def put(self, key, value, ttl_seconds: float | None = None) -> None:\n        ...\n\n    def get(self, key):\n        ...\n\n    def size(self) -> int:\n        ...",
+        "starter_code": "import time\nfrom typing import Optional\n\nclass Cache:\n    def __init__(self, capacity: int):\n        # your code here\n        pass\n\n    def put(self, key, value, ttl_seconds: Optional[float] = None) -> None:\n        # your code here\n        pass\n\n    def get(self, key):\n        # your code here\n        pass\n\n    def size(self) -> int:\n        # your code here\n        pass\n",
+        "test_kind": "pytest",
+        "test_file": "system_design_tests/cache-with-ttl-and-lru.py"
     }
 ]

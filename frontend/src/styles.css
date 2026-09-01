@@ -17,6 +17,8 @@
   --medium-text: #7c4a03;
   --hard-bg: #ef4444;
   --hard-text: #ffffff;
+  --systemdesign-bg: #ddd6fe;
+  --systemdesign-text: #4c1d95;
 
   --danger: #dc2626;
   --pass-bg: #e7f6ec;
@@ -191,6 +193,7 @@ button {
 .difficulty-easy, .tag-easy { background: var(--easy-bg); color: var(--easy-text); border: 1px solid var(--easy-border); }
 .difficulty-medium, .tag-medium { background: var(--medium-bg); color: var(--medium-text); }
 .difficulty-hard, .tag-hard { background: var(--hard-bg); color: var(--hard-text); }
+.difficulty-system_design, .tag-system_design { background: var(--systemdesign-bg); color: var(--systemdesign-text); }
 
 /* ---------- workspace ---------- */
 .workspace-page {
@@ -269,6 +272,11 @@ button {
   padding: 0.75rem;
   overflow-x: auto;
   font-size: 0.85rem;
+}
+.workspace-hint {
+  margin: 0.6rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted, #6b7280);
 }
 
 /* ---------- rendered markdown (problem descriptions) ---------- */

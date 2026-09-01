@@ -1,4 +1,5 @@
-const OPTIONS = ['all', 'easy', 'medium', 'hard']
+const OPTIONS = ['all', 'easy', 'medium', 'hard', 'system_design']
+const LABELS = { system_design: 'system design' }
 
 export default function DifficultyFilter({ value, onChange }) {
   return (
@@ -9,7 +10,7 @@ export default function DifficultyFilter({ value, onChange }) {
           className={value === opt ? 'active' : ''}
           onClick={() => onChange(opt)}
         >
-          {opt}
+          {LABELS[opt] ?? opt}
         </button>
       ))}
     </div>

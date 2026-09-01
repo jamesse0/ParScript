@@ -4,6 +4,10 @@ The JSON file is the definitive list: rows are upserted on `slug`, and any
 `problems` row whose slug is NOT in the file is deleted (unless it still has
 attempts/submissions referencing it, in which case it's kept and reported).
 
+For `test_kind: "pytest"` problems, `test_file` is a path (relative to the JSON
+file's directory) to a real `.py` pytest module. Its contents are read and
+stored in the `problems.test_file` column at seed time.
+
 Usage (from backend/):
     python db/seed_problems.py                  # loads db/problems.json
     python db/seed_problems.py path/to.json     # loads a specific file
@@ -24,7 +28,8 @@ from dataaccess.supabase_client import get_supabase  # noqa: E402
 
 DEFAULT_FILE = Path(__file__).resolve().parent / "problems.json"
 
-REQUIRED_FIELDS = {
+# Always required, regardless of grading kind.
+BASE_REQUIRED = {
     "slug",
     "title",
     "description",
@@ -32,32 +37,60 @@ REQUIRED_FIELDS = {
     "par_tokens",
     "function_signature",
     "starter_code",
-    "test_cases",
 }
-ALLOWED_DIFFICULTY = {"easy", "medium", "hard"}
+# Allowed but grading-kind-dependent (see _validate).
+OPTIONAL_ALLOWED = {"test_kind", "test_cases", "test_file"}
+ALLOWED_DIFFICULTY = {"easy", "medium", "hard", "system_design"}
+ALLOWED_TEST_KIND = {"io_pairs", "pytest"}
 
 
-def _validate(problem: dict, index: int) -> None:
-    missing = REQUIRED_FIELDS - problem.keys()
+def _validate(problem: dict, index: int, base_dir: Path) -> None:
+    slug = problem.get("slug", "?")
+    missing = BASE_REQUIRED - problem.keys()
     if missing:
-        raise ValueError(f"problem[{index}] ({problem.get('slug', '?')}): missing {sorted(missing)}")
-    extra = problem.keys() - REQUIRED_FIELDS
+        raise ValueError(f"problem[{index}] ({slug}): missing {sorted(missing)}")
+    extra = problem.keys() - BASE_REQUIRED - OPTIONAL_ALLOWED
     if extra:
-        raise ValueError(f"problem[{index}] ({problem['slug']}): unknown fields {sorted(extra)}")
+        raise ValueError(f"problem[{index}] ({slug}): unknown fields {sorted(extra)}")
     if problem["difficulty"] not in ALLOWED_DIFFICULTY:
         raise ValueError(
-            f"problem[{index}] ({problem['slug']}): difficulty must be one of {sorted(ALLOWED_DIFFICULTY)}"
+            f"problem[{index}] ({slug}): difficulty must be one of {sorted(ALLOWED_DIFFICULTY)}"
         )
     if not isinstance(problem["par_tokens"], int):
-        raise ValueError(f"problem[{index}] ({problem['slug']}): par_tokens must be an int")
-    tcs = problem["test_cases"]
-    if not isinstance(tcs, list) or not tcs:
-        raise ValueError(f"problem[{index}] ({problem['slug']}): test_cases must be a non-empty array")
-    for j, tc in enumerate(tcs):
-        if not isinstance(tc, dict) or "input" not in tc or "expected_output" not in tc:
+        raise ValueError(f"problem[{index}] ({slug}): par_tokens must be an int")
+
+    test_kind = problem.get("test_kind", "io_pairs")
+    if test_kind not in ALLOWED_TEST_KIND:
+        raise ValueError(
+            f"problem[{index}] ({slug}): test_kind must be one of {sorted(ALLOWED_TEST_KIND)}"
+        )
+
+    if test_kind == "io_pairs":
+        if "test_file" in problem:
+            raise ValueError(f"problem[{index}] ({slug}): io_pairs problems must not set test_file")
+        tcs = problem.get("test_cases")
+        if not isinstance(tcs, list) or not tcs:
+            raise ValueError(f"problem[{index}] ({slug}): test_cases must be a non-empty array")
+        for j, tc in enumerate(tcs):
+            if not isinstance(tc, dict) or "input" not in tc or "expected_output" not in tc:
+                raise ValueError(
+                    f"problem[{index}] ({slug}): test_cases[{j}] needs 'input' and 'expected_output'"
+                )
+    else:  # pytest
+        tf = problem.get("test_file")
+        if not isinstance(tf, str) or not tf.strip():
             raise ValueError(
-                f"problem[{index}] ({problem['slug']}): test_cases[{j}] needs 'input' and 'expected_output'"
+                f"problem[{index}] ({slug}): pytest problems need test_file (a path to a .py pytest module)"
             )
+        if not tf.endswith(".py"):
+            raise ValueError(f"problem[{index}] ({slug}): test_file must be a path to a .py file, got {tf!r}")
+        resolved = (base_dir / tf).resolve()
+        if not resolved.is_file():
+            raise ValueError(f"problem[{index}] ({slug}): test_file not found: {resolved}")
+        if not resolved.read_text().strip():
+            raise ValueError(f"problem[{index}] ({slug}): test_file is empty: {resolved}")
+        if problem.get("test_cases"):
+            raise ValueError(f"problem[{index}] ({slug}): pytest problems must not set test_cases")
 
 
 def _prune_extras(supabase, keep_slugs: set[str]) -> None:
@@ -94,8 +127,19 @@ def main() -> int:
         print(f"error: {path} must contain a non-empty JSON array", file=sys.stderr)
         return 1
 
+    base_dir = path.resolve().parent
     for i, problem in enumerate(problems):
-        _validate(problem, i)
+        _validate(problem, i, base_dir)
+
+    # Inline each pytest module's source (test_file is a path in the JSON, the
+    # column stores the actual code). Then normalize the grading columns across
+    # io_pairs and pytest problems -- PostgREST bulk upsert needs uniform keys.
+    for problem in problems:
+        problem.setdefault("test_kind", "io_pairs")
+        problem.setdefault("test_cases", None)
+        if problem["test_kind"] == "pytest":
+            problem["test_file"] = (base_dir / problem["test_file"]).resolve().read_text()
+        problem.setdefault("test_file", None)
 
     slugs = [p["slug"] for p in problems]
     if len(set(slugs)) != len(slugs):
