@@ -132,7 +132,7 @@ export default function ProblemWorkspacePage() {
       setPassed(res.passed)
       if (res.passed) {
         const reviewRes = await postReview(problem.id, code)
-        setReviewComments(reviewRes.comments)
+        setReviewComments(reviewRes)
         refreshLeaderboard()
       }
     } catch (e) {
@@ -190,7 +190,7 @@ export default function ProblemWorkspacePage() {
           </div>
         )}
 
-        <ReviewComments comments={reviewComments} />
+        <ReviewComments review={reviewComments} />
 
         <div className="workspace-leaderboard">
           <h2>Leaderboard</h2>

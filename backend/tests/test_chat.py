@@ -176,8 +176,12 @@ class TestChatEndToEnd(unittest.TestCase):
         self.assertGreater(in2, in1)  # longer context -> more input tokens
 
         # review
-        comments = asyncio.run(review_completion(self.problem, code2))
-        self.assertTrue(comments.strip())
+        time_complexity, space_complexity, comments = asyncio.run(
+            review_completion(self.problem, code2)
+        )
+        self.assertTrue(time_complexity.strip())
+        self.assertTrue(space_complexity.strip())
+        self.assertTrue(comments)
 
         rows = (
             self.admin.table("attempts")

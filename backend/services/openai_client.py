@@ -31,8 +31,18 @@ _CHAT_SYSTEM = """You are a Python coding assistant. The user describes a progra
 - When the user asks for a change, return the full updated code again (still just the code block), not a diff."""
 
 _REVIEW_SYSTEM = """You are a senior engineer reviewing a Python solution that already passes its tests.
-Give 3-5 short, concrete bullet points: correctness edge cases, time/space complexity,
-and readability. Only suggest a code change if it fits on one line. Be concise."""
+Respond in EXACTLY this format, with nothing before or after it:
+
+Time: <Big-O time complexity, e.g. O(n log n)>
+Space: <Big-O space complexity, e.g. O(1)>
+
+- <first bullet>
+- <second bullet>
+- <third bullet>
+
+Give 3-5 bullet points total, covering correctness edge cases and readability (not
+complexity -- that's already captured above). Each bullet is one short, concrete
+sentence. Only suggest a code change if it fits inline using backticks. Be concise."""
 
 
 class OpenAICallError(Exception):
@@ -53,6 +63,28 @@ def extract_code(text: str) -> str:
     (the frontend then keeps whatever code was already in the editor)."""
     blocks = _CODE_FENCE.findall(text or "")
     return blocks[-1].strip() if blocks else ""
+
+
+_TIME_LINE = re.compile(r"^time\s*(?:complexity)?\s*:\s*(.+)$", re.IGNORECASE)
+_SPACE_LINE = re.compile(r"^space\s*(?:complexity)?\s*:\s*(.+)$", re.IGNORECASE)
+_BULLET_LINE = re.compile(r"^[-*]\s+(.+)$")
+
+
+def parse_review(text: str) -> tuple[str, str, list[str]]:
+    """-> (time_complexity, space_complexity, bullets), tolerating minor drift
+    from the requested format (missing fields just come back empty/[])."""
+    time_complexity = ""
+    space_complexity = ""
+    bullets = []
+    for line in (text or "").splitlines():
+        stripped = line.strip().strip("*").strip()
+        if m := _TIME_LINE.match(stripped):
+            time_complexity = m.group(1).strip()
+        elif m := _SPACE_LINE.match(stripped):
+            space_complexity = m.group(1).strip()
+        elif m := _BULLET_LINE.match(line.strip()):
+            bullets.append(m.group(1).strip())
+    return time_complexity, space_complexity, bullets
 
 
 def _sanitize_history(message_history: list[dict]) -> list[dict]:
@@ -99,8 +131,8 @@ async def chat_completion(
     return reply, extract_code(reply), usage.prompt_tokens, usage.completion_tokens
 
 
-async def review_completion(problem: dict, code: str) -> str:
-    """-> improvement comments (plain text / markdown bullets)."""
+async def review_completion(problem: dict, code: str) -> tuple[str, str, list[str]]:
+    """-> (time_complexity, space_complexity, bullets)."""
     user = (
         f"Problem: {problem['title']}\n{problem['description']}\n\n"
         f"Solution:\n```python\n{code}\n```"
@@ -113,11 +145,19 @@ async def review_completion(problem: dict, code: str) -> str:
                 {"role": "user", "content": user},
             ],
             max_completion_tokens=settings.openai_max_completion_tokens,
+            # Reviewing already-passing code into a few short bullets doesn't need
+            # deep chain-of-thought; the API defaults gpt-5-* to "medium" reasoning
+            # effort, which was the dominant source of /review's latency.
+            reasoning_effort="low",
         )
     except OpenAIError as exc:
         raise OpenAICallError(str(exc)) from exc
 
-    comments = resp.choices[0].message.content or ""
-    if not comments.strip():
+    text = resp.choices[0].message.content or ""
+    if not text.strip():
         raise OpenAICallError("model returned no review text")
-    return comments
+
+    time_complexity, space_complexity, bullets = parse_review(text)
+    if not bullets:
+        raise OpenAICallError("model response did not match the expected review format")
+    return time_complexity, space_complexity, bullets

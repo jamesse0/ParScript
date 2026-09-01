@@ -3,7 +3,7 @@
 Owner: Full-stack generalist (DESIGN.md §8.3). Implemented against services/openai_client.py.
 
   POST /review  {problem_id, code}
-    -> {comments}  improvement notes, returned directly (not persisted tonight).
+    -> {time_complexity, space_complexity, comments}  returned directly (not persisted tonight).
 """
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -23,8 +23,10 @@ async def review(body: ReviewRequest, user=Depends(get_current_user)) -> ReviewR
         raise HTTPException(status_code=404, detail="problem not found")
 
     try:
-        comments = await review_completion(problem, body.code)
+        time_complexity, space_complexity, comments = await review_completion(problem, body.code)
     except OpenAICallError as exc:
         raise HTTPException(status_code=502, detail=f"OpenAI call failed: {exc}")
 
-    return ReviewResponse(comments=comments)
+    return ReviewResponse(
+        time_complexity=time_complexity, space_complexity=space_complexity, comments=comments
+    )
