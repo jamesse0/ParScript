@@ -2,10 +2,10 @@ import { useLayoutEffect, useRef } from 'react'
 
 const INDENT = '\t' // one real tab char -- one keystroke to add or delete
 
-// Editable code box. Auto-grows to fit its content, and Tab / Shift+Tab / Enter
-// do sensible indentation instead of the browser defaults. Not a real editor --
-// just enough to hand-write a solution without fighting the textarea.
-export default function CodePanel({ code, onChange }) {
+// Code box. Editable in Manual mode (auto-grows, Tab/Shift+Tab/Enter do
+// sensible indentation instead of browser defaults); read-only in Prompt
+// mode, where the code is AI-generated and shouldn't be hand-edited.
+export default function CodePanel({ code, onChange, readOnly = false }) {
   const textareaRef = useRef(null)
 
   useLayoutEffect(() => {
@@ -23,6 +23,7 @@ export default function CodePanel({ code, onChange }) {
   }
 
   const handleKeyDown = (e) => {
+    if (readOnly) return
     const { selectionStart: start, selectionEnd: end } = e.target
 
     // Enter: start the new line at the same indent (one deeper after a ":")
@@ -64,8 +65,9 @@ export default function CodePanel({ code, onChange }) {
         ref={textareaRef}
         className="code-editor"
         value={code}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => !readOnly && onChange(e.target.value)}
         onKeyDown={handleKeyDown}
+        readOnly={readOnly}
         spellCheck={false}
         wrap="off"
         rows={12}

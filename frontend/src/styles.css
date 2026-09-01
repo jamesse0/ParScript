@@ -330,6 +330,7 @@ button {
   tab-size: 4;
 }
 .code-editor:focus { outline: none; }
+.code-editor[readonly] { cursor: default; }
 
 /* ---------- test results ---------- */
 .test-results { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }

@@ -244,7 +244,7 @@ export default function ProblemWorkspacePage() {
         {!isManual && (
           <ChatPanel messages={messages} onSend={handleSend} sending={sending} resetSignal={attemptRef.current} />
         )}
-        <CodePanel code={code} onChange={setCode} />
+        <CodePanel code={code} onChange={setCode} readOnly={!isManual} />
 
         <button className="btn btn-accent" onClick={handleSubmit} disabled={submitting}>
           {submitting ? 'Running...' : 'Submit'}
