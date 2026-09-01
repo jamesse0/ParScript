@@ -164,7 +164,14 @@ export default function ProblemWorkspacePage() {
     <div className="workspace-page">
       <div className="workspace-sidebar">
         <div className="workspace-description">
-          <h1>{problem.title}</h1>
+          <div className="workspace-title-row">
+            <h1>{problem.title}</h1>
+            {testResults && (
+              <button className="btn btn-outline" onClick={handleReplay}>
+                Replay Problem
+              </button>
+            )}
+          </div>
           <span className={`tag tag-${problem.difficulty}`}>{problem.difficulty}</span>
           <Markdown text={problem.description} />
           <pre>{problem.function_signature}</pre>
@@ -196,7 +203,6 @@ export default function ProblemWorkspacePage() {
           <div className="workspace-results">
             <h2>{passed ? 'All tests passed' : 'Some tests failed'}</h2>
             <TestResultsList results={testResults} />
-            <button className="btn btn-outline" onClick={handleReplay}>Replay Problem</button>
           </div>
         )}
 
