@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useAuth, signInWithGithub } from '../lib/AuthProvider'
+import { useAuth } from '../lib/AuthProvider'
+import GithubButton from '../components/GithubButton'
 import { getMe } from '../api/profile'
 import { getMetrics } from '../api/metrics'
 import { getGlobalLeaderboard } from '../api/leaderboard'
@@ -88,9 +89,7 @@ function AccountTile() {
       <div className="home-tile home-account-tile">
         <h3>Create an Account</h3>
         <p>Sign in with GitHub to start tracking your par.</p>
-        <button className="btn btn-accent" onClick={signInWithGithub}>
-          Register
-        </button>
+        <GithubButton />
       </div>
     )
   }

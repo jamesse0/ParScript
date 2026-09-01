@@ -1,10 +1,12 @@
 export default function TokenCounter({ inputTokens, outputTokens, reasoningTokens = 0, parTokens }) {
   const total = inputTokens + outputTokens
-  const ratio = parTokens ? (total / parTokens).toFixed(2) : '—'
+  const ratio = parTokens ? (total / parTokens).toFixed(2) : null
   return (
     <div className="token-counter">
-      <span>{total} tokens</span>
-      <span className="par">/ {parTokens} par ({ratio}x)</span>
+      <span>
+        {total} / {parTokens ?? '—'} token par
+      </span>
+      {ratio && <span className="par">({ratio}x)</span>}
       {reasoningTokens > 0 && (
         <span
           className="thinking-tokens"

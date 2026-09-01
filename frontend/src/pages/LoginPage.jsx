@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom'
-import { useAuth, signInWithGithub } from '../lib/AuthProvider'
+import { useAuth } from '../lib/AuthProvider'
+import GithubButton from '../components/GithubButton'
 
 export default function LoginPage() {
   const { session, loading } = useAuth()
@@ -10,7 +11,7 @@ export default function LoginPage() {
     <div className="login-page">
       <h1>Par Prompt</h1>
       <p>Solve algorithm problems by prompting an AI — scored on token efficiency.</p>
-      <button className="btn btn-accent" onClick={signInWithGithub}>Continue with GitHub</button>
+      <GithubButton />
     </div>
   )
 }
