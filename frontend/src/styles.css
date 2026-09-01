@@ -134,15 +134,36 @@ button {
   min-height: calc(100vh - var(--nav-h));
   display: flex;
   align-items: center;
-  gap: 3.5rem;
   padding: 2rem 4rem;
-  /* General translucent wash + a top-to-bottom gradient (top is more
-     transparent / lighter, bottom is more opaque / darker) in one layer. */
-  background:
-    linear-gradient(to bottom, rgba(8, 20, 14, 0.28) 0%, rgba(8, 20, 14, 0.62) 100%),
-    url("./assets/splash-course.jpg");
+  overflow: hidden;
+}
+
+/* Image and dark wash are separate layers so each opacity is independently
+   tunable -- background-image alone has no standalone opacity control. */
+.home-splash-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url("./assets/splash-course.jpg");
   background-size: cover;
   background-position: center;
+  opacity: 0.65;
+}
+
+.home-splash-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  /* Top is more transparent / lighter, bottom is more opaque / darker. */
+  background: linear-gradient(to bottom, rgba(8, 20, 14, 0.28) 0%, rgba(8, 20, 14, 0.62) 100%);
+}
+
+.home-splash-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 3.5rem;
 }
 
 .home-splash-logo-badge {
@@ -188,6 +209,7 @@ button {
 
 .home-scroll-cue {
   position: absolute;
+  z-index: 1;
   left: 50%;
   bottom: 1.75rem;
   transform: translateX(-50%);

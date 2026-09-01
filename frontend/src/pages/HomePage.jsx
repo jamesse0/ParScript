@@ -141,15 +141,20 @@ export default function HomePage() {
   return (
     <div className="home-page">
       <section className="home-splash">
-        <div className="home-splash-logo-badge">
-          <img src={logo} alt="Par Prompt" className="home-splash-logo" />
-        </div>
-        <div className="home-splash-copy">
-          <p className="home-splash-slogan">Efficiency is the new green.</p>
-          <p className="home-splash-vision">
-            Treating efficient prompting as practice rewards fewer tokens, faster answers, and a
-            smaller footprint behind every idea.
-          </p>
+        <div className="home-splash-bg" />
+        <div className="home-splash-scrim" />
+
+        <div className="home-splash-content">
+          <div className="home-splash-logo-badge">
+            <img src={logo} alt="Par Prompt" className="home-splash-logo" />
+          </div>
+          <div className="home-splash-copy">
+            <p className="home-splash-slogan">Efficiency is the new green.</p>
+            <p className="home-splash-vision">
+              Treating efficient prompting as practice rewards fewer tokens, faster answers, and a
+              smaller footprint behind every idea.
+            </p>
+          </div>
         </div>
 
         <div className="home-scroll-cue" aria-hidden="true">
@@ -169,7 +174,7 @@ export default function HomePage() {
           </div>
         </div>
         <Link to="/problems" className="home-cta">
-          View Courses
+          View Problems
         </Link>
       </section>
     </div>
