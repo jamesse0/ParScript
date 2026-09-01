@@ -4,6 +4,7 @@ import { getMetrics } from '../api/metrics'
 import { getMe } from '../api/profile'
 import { signOut } from '../lib/AuthProvider'
 import MetricsHistoryTable from '../components/MetricsHistoryTable'
+import { difficultyLabel } from '../lib/difficulty'
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState(null)
@@ -55,7 +56,7 @@ export default function ProfilePage() {
       <ul className="metrics-by-difficulty">
         {Object.entries(metrics.avg_tokens_vs_par_by_difficulty).map(([difficulty, ratio]) => (
           <li key={difficulty}>
-            <span className={`tag tag-${difficulty}`}>{difficulty}</span>
+            <span className={`tag tag-${difficulty}`}>{difficultyLabel(difficulty)}</span>
             <span>{ratio.toFixed(2)}x par</span>
           </li>
         ))}

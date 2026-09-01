@@ -530,6 +530,19 @@ button {
   border-radius: var(--radius-md);
 }
 .workspace-results { padding: 1rem 1.25rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+
+.token-counter { display: flex; align-items: baseline; gap: 0.5rem; font-size: 0.9rem; font-weight: 600; }
+.token-counter .par { color: var(--text-muted); font-weight: 500; }
+.token-counter .thinking-tokens {
+  padding: 0.05rem 0.45rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: help;
+}
 .workspace-results h2 { margin-top: 0; font-size: 1.05rem; }
 .workspace-results .btn { margin-top: 0.85rem; }
 
@@ -559,6 +572,28 @@ button {
   cursor: pointer;
 }
 .chat-reply-toggle:hover { color: var(--accent); }
+.chat-thinking-badge {
+  margin-left: 0.5rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+.chat-detail { margin-top: 0.5rem; }
+.chat-detail-divider { border: none; border-top: 1px solid var(--border); margin: 0.75rem 0; }
+.chat-detail .markdown { font-size: 0.85rem; }
+.chat-detail .markdown p { margin: 0.3rem 0; }
+.chat-detail .markdown pre {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.6rem 0.75rem;
+  overflow-x: auto;
+}
 .chat-message.chat-assistant p { margin-top: 0.4rem; }
 .chat-pending { color: var(--text-muted); font-style: italic; }
 .chat-input { display: flex; align-items: flex-end; gap: 0.6rem; margin-top: 0.75rem; }

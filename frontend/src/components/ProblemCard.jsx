@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { difficultyLabel } from '../lib/difficulty'
 
 export default function ProblemCard({ problem }) {
   return (
@@ -7,7 +8,7 @@ export default function ProblemCard({ problem }) {
       <div className="problem-card-footer">
         <div className="problem-card-meta">
           <span className={`difficulty-badge difficulty-${problem.difficulty}`}>
-            {problem.difficulty}
+            {difficultyLabel(problem.difficulty)}
           </span>
           <span className="par-tokens">{problem.par_tokens} par</span>
         </div>

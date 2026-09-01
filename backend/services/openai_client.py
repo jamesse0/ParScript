@@ -1,8 +1,17 @@
 """OpenAI glue for /chat and /review (DESIGN.md §3, §5).
 
-Cheap reasoning model (settings.openai_model, e.g. gpt-5-nano). Each call returns
-the generated text plus token usage straight from the API response; the frontend
-accumulates tokens client-side for the live counter (DESIGN §5, §9).
+Cheap reasoning model (settings.openai_model, e.g. gpt-5-nano).
+
+/chat goes through the Responses API so we can ask for a reasoning *summary*
+("reasoning": {"summary": "auto"}) -- a short natural-language gist of what the
+model had to work out. That's surfaced in the UI so a user can see how a vague
+prompt makes the model think harder. The raw chain-of-thought is never exposed
+by OpenAI; only the summary and the reasoning-token count are.
+
+Note: `temperature` is intentionally not set. gpt-5 reasoning models reject any
+non-default `temperature`/`top_p`, so output already varies call-to-call and
+there is no knob to make it less volatile (pass `reasoning.effort` to trade
+thinking depth for speed instead). /review keeps that lever at "low".
 
 Owner: Full-stack generalist (DESIGN.md §8.3).
 """
@@ -97,10 +106,28 @@ def _sanitize_history(message_history: list[dict]) -> list[dict]:
     return clean
 
 
+def _extract_reasoning_summary(resp) -> str:
+    """Join the reasoning-summary text parts from a Responses API result, if any.
+    Empty string when the model returned no summary (some runs won't)."""
+    parts = []
+    for item in getattr(resp, "output", None) or []:
+        if getattr(item, "type", None) != "reasoning":
+            continue
+        for chunk in getattr(item, "summary", None) or []:
+            text = (getattr(chunk, "text", "") or "").strip()
+            if text:
+                parts.append(text)
+    return "\n\n".join(parts)
+
+
 async def chat_completion(
     function_signature: str, message_history: list[dict]
-) -> tuple[str, str, int, int]:
-    """-> (reply, code, input_tokens, output_tokens) for this one call.
+) -> tuple[str, str, int, int, int, str]:
+    """-> (reply, code, input_tokens, output_tokens, reasoning_tokens, reasoning_summary).
+
+    `output_tokens` already includes `reasoning_tokens` (Responses API accounting).
+    `reasoning_summary` is a short natural-language gist of the model's thinking
+    ("" if the model returned none) -- not the raw chain-of-thought.
 
     Only `function_signature` crosses the boundary from the problem -- the
     required entry-point name/params, which the grader depends on. The task
@@ -108,27 +135,38 @@ async def chat_completion(
     spec (that's what Par Prompt measures).
     """
     system = _CHAT_SYSTEM.format(function_signature=function_signature)
-    messages = [{"role": "system", "content": system}, *_sanitize_history(message_history)]
 
     try:
-        resp = await _get_client().chat.completions.create(
+        resp = await _get_client().responses.create(
             model=settings.openai_model,
-            messages=messages,
-            max_completion_tokens=settings.openai_max_completion_tokens,
+            instructions=system,
+            input=_sanitize_history(message_history),
+            max_output_tokens=settings.openai_max_completion_tokens,
+            reasoning={"summary": "auto"},
         )
     except OpenAIError as exc:
         raise OpenAICallError(str(exc)) from exc
 
-    choice = resp.choices[0]
-    reply = choice.message.content or ""
+    reply = resp.output_text or ""
     if not reply.strip():
+        reason = getattr(getattr(resp, "incomplete_details", None), "reason", None)
         raise OpenAICallError(
-            f"model returned no text (finish_reason={choice.finish_reason}); "
+            f"model returned no text (status={getattr(resp, 'status', '?')}, reason={reason}); "
             "try raising OPENAI_MAX_COMPLETION_TOKENS"
         )
 
     usage = resp.usage
-    return reply, extract_code(reply), usage.prompt_tokens, usage.completion_tokens
+    reasoning_tokens = getattr(
+        getattr(usage, "output_tokens_details", None), "reasoning_tokens", 0
+    ) or 0
+    return (
+        reply,
+        extract_code(reply),
+        usage.input_tokens,
+        usage.output_tokens,
+        reasoning_tokens,
+        _extract_reasoning_summary(resp),
+    )
 
 
 async def review_completion(problem: dict, code: str) -> tuple[str, str, list[str]]:
