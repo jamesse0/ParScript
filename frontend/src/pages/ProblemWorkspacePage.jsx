@@ -15,8 +15,23 @@ import Timer from '../components/Timer'
 import TestResultsList from '../components/TestResultsList'
 import ReviewComments from '../components/ReviewComments'
 import LeaderboardTable from '../components/LeaderboardTable'
-import Markdown from '../components/Markdown'
 import ModeToggle from '../components/ModeToggle'
+import ProblemDescription from '../components/ProblemDescription'
+
+const SIDEBAR_WIDTH_KEY = 'parscript:sidebarWidth'
+const MIN_SIDEBAR_WIDTH = 280
+const MAX_SIDEBAR_WIDTH = 900
+const DEFAULT_SIDEBAR_WIDTH = 340
+
+function loadSidebarWidth() {
+  try {
+    const stored = Number(localStorage.getItem(SIDEBAR_WIDTH_KEY))
+    if (stored >= MIN_SIDEBAR_WIDTH && stored <= MAX_SIDEBAR_WIDTH) return stored
+  } catch {
+    // storage disabled -- fall through to default
+  }
+  return DEFAULT_SIDEBAR_WIDTH
+}
 
 export default function ProblemWorkspacePage() {
   const { problemId } = useParams()
@@ -27,6 +42,40 @@ export default function ProblemWorkspacePage() {
 
   // 'prompt' = chat with the AI; 'manual' = hand-write the solution, ranked by time.
   const [mode, setMode] = useState(saved?.mode ?? 'prompt')
+
+  const [sidebarWidth, setSidebarWidth] = useState(loadSidebarWidth)
+  const [resizingSidebar, setResizingSidebar] = useState(false)
+
+  const handleResizeStart = (e) => {
+    e.preventDefault()
+    const startX = e.clientX
+    const startWidth = sidebarWidth
+    setResizingSidebar(true)
+
+    const onMouseMove = (moveEvent) => {
+      const next = Math.min(
+        MAX_SIDEBAR_WIDTH,
+        Math.max(MIN_SIDEBAR_WIDTH, startWidth + moveEvent.clientX - startX)
+      )
+      setSidebarWidth(next)
+    }
+    const onMouseUp = () => {
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', onMouseUp)
+      setResizingSidebar(false)
+      setSidebarWidth((width) => {
+        try {
+          localStorage.setItem(SIDEBAR_WIDTH_KEY, String(width))
+        } catch {
+          // storage disabled -- resize still works for this session
+        }
+        return width
+      })
+    }
+
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
+  }
 
   const [messages, setMessages] = useState(saved?.messages ?? [])
   const [code, setCode] = useState(saved?.code ?? '')
@@ -206,7 +255,10 @@ export default function ProblemWorkspacePage() {
   const isManual = mode === 'manual'
 
   return (
-    <div className="workspace-page">
+    <div
+      className={`workspace-page${resizingSidebar ? ' resizing' : ''}`}
+      style={{ gridTemplateColumns: `${sidebarWidth}px 24px 1fr` }}
+    >
       <div className="workspace-sidebar">
         <ModeToggle value={mode} onChange={handleModeChange} />
 
@@ -218,7 +270,7 @@ export default function ProblemWorkspacePage() {
             </button>
           </div>
           <span className={`tag tag-${problem.difficulty}`}>{problem.difficulty}</span>
-          <Markdown text={problem.description} />
+          <ProblemDescription text={problem.description} />
           <pre>{problem.function_signature}</pre>
         </div>
 
@@ -231,6 +283,17 @@ export default function ProblemWorkspacePage() {
             Full leaderboard &rarr;
           </Link>
         </div>
+      </div>
+
+      <div
+        className="workspace-resize-handle"
+        onMouseDown={handleResizeStart}
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize problem panel"
+        title="Drag to resize"
+      >
+        <span className="workspace-resize-grip">↔</span>
       </div>
 
       <div className="workspace-main">
