@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, Link } from 'react-router-dom'
+import { Routes, Route, Navigate, Link, NavLink } from 'react-router-dom'
 import RequireAuth from './components/RequireAuth'
 import OnboardingGate from './components/OnboardingGate'
 import LoginPage from './pages/LoginPage'
@@ -6,15 +6,22 @@ import ProblemListPage from './pages/ProblemListPage'
 import ProblemWorkspacePage from './pages/ProblemWorkspacePage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import ProfilePage from './pages/ProfilePage'
+import logo from './assets/parprompt-logo.png'
 
 export default function App() {
   return (
     <>
       <nav className="app-nav">
-        <Link to="/problems" className="brand">Par Prompt</Link>
+        <Link to="/problems" className="brand">
+          <img src={logo} alt="Par Prompt" className="brand-logo" />
+        </Link>
         <div className="nav-links">
-          <Link to="/problems">Problems</Link>
-          <Link to="/profile">Profile</Link>
+          <NavLink to="/problems" className={({ isActive }) => (isActive ? 'active' : undefined)}>
+            Problems
+          </NavLink>
+          <NavLink to="/profile" className={({ isActive }) => (isActive ? 'active' : undefined)}>
+            Profile
+          </NavLink>
         </div>
       </nav>
       <Routes>
