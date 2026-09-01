@@ -1,6 +1,7 @@
-import { Routes, Route, Navigate, Link, NavLink } from 'react-router-dom'
+import { Routes, Route, Link, NavLink } from 'react-router-dom'
 import RequireAuth from './components/RequireAuth'
 import OnboardingGate from './components/OnboardingGate'
+import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import ProblemListPage from './pages/ProblemListPage'
 import ProblemWorkspacePage from './pages/ProblemWorkspacePage'
@@ -11,9 +12,9 @@ import logo from './assets/parprompt-logo.png'
 
 export default function App() {
   return (
-    <>
+    <div className="app-shell">
       <nav className="app-nav">
-        <Link to="/problems" className="brand">
+        <Link to="/" className="brand">
           <img src={logo} alt="Par Prompt" className="brand-logo" />
         </Link>
         <div className="nav-links">
@@ -28,33 +29,35 @@ export default function App() {
           </NavLink>
         </div>
       </nav>
-      <Routes>
-        <Route path="/" element={<Navigate to="/problems" replace />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/problems" element={<ProblemListPage />} />
-        <Route path="/leaderboard" element={<GlobalLeaderboardPage />} />
-        <Route path="/problems/:problemId/leaderboard" element={<LeaderboardPage />} />
-        <Route
-          path="/problems/:problemId"
-          element={
-            <RequireAuth>
-              <OnboardingGate>
-                <ProblemWorkspacePage />
-              </OnboardingGate>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <RequireAuth>
-              <OnboardingGate>
-                <ProfilePage />
-              </OnboardingGate>
-            </RequireAuth>
-          }
-        />
-      </Routes>
-    </>
+      <main className="app-main">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/problems" element={<ProblemListPage />} />
+          <Route path="/leaderboard" element={<GlobalLeaderboardPage />} />
+          <Route path="/problems/:problemId/leaderboard" element={<LeaderboardPage />} />
+          <Route
+            path="/problems/:problemId"
+            element={
+              <RequireAuth>
+                <OnboardingGate>
+                  <ProblemWorkspacePage />
+                </OnboardingGate>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <RequireAuth>
+                <OnboardingGate>
+                  <ProfilePage />
+                </OnboardingGate>
+              </RequireAuth>
+            }
+          />
+        </Routes>
+      </main>
+    </div>
   )
 }

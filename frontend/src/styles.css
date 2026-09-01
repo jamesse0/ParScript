@@ -37,6 +37,8 @@
 
 * { box-sizing: border-box; }
 
+html, body, #root { height: 100%; }
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
@@ -44,6 +46,12 @@ body {
   color: var(--text);
   -webkit-font-smoothing: antialiased;
 }
+
+/* Nav is a fixed-height flex item; app-main takes the rest and scrolls on
+   its own, so a page that needs to fit exactly (HomePage) can rely on
+   height: 100% instead of the window's scroll height. */
+.app-shell { display: flex; flex-direction: column; height: 100vh; }
+.app-main { flex: 1; min-height: 0; overflow: auto; }
 
 h1, h2, h3 { letter-spacing: -0.01em; }
 
@@ -107,6 +115,178 @@ button {
   color: #ffffff;
 }
 .app-nav .nav-links a.active:hover { color: #ffffff; }
+
+/* ---------- home ---------- */
+.home-page {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem 1.75rem;
+  max-width: 1440px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.home-hero {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.25rem;
+}
+
+.home-carousel {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+.home-carousel-track {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.5s ease;
+}
+
+.home-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 3rem 3.5rem;
+  background: linear-gradient(135deg, var(--accent-soft), var(--surface) 70%);
+}
+
+.home-slide h2 {
+  margin: 0;
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  color: var(--text);
+}
+
+.home-slide p {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.home-carousel-dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1.25rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.home-carousel-dots button {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border-radius: 50%;
+  border: none;
+  background: var(--border);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.home-carousel-dots button.active {
+  background: var(--accent);
+  transform: scale(1.25);
+}
+
+.home-side-tiles {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 1.25rem;
+  min-height: 0;
+}
+
+.home-tile {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1.4rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+.home-tile h3 {
+  margin: 0 0 0.6rem;
+  font-size: 0.95rem;
+}
+
+.home-tile-link {
+  color: inherit;
+  text-decoration: none;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.home-tile-link:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+
+.home-account-tile {
+  justify-content: center;
+  gap: 0.5rem;
+}
+.home-account-tile p { margin: 0 0 0.75rem; color: var(--text-muted); font-size: 0.85rem; }
+.home-account-tile .btn { align-self: flex-start; }
+
+.home-stat { display: flex; flex-direction: column; }
+.home-stat-value { font-size: 1.6rem; font-weight: 700; }
+.home-stat-label { font-size: 0.78rem; color: var(--text-muted); }
+
+.home-tile-empty { margin: 0; color: var(--text-muted); font-size: 0.85rem; }
+
+.home-leaderboard-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  overflow: hidden;
+}
+.home-leaderboard-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+}
+.home-rank {
+  width: 1.3rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.home-username { flex: 1; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.home-handicap { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+.home-cta {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  transition: background 0.15s ease;
+}
+.home-cta:hover { background: var(--accent-hover); }
 
 /* ---------- problem list ---------- */
 .problem-list-page { padding: 2rem 1.75rem; max-width: 1100px; margin: 0 auto; }
