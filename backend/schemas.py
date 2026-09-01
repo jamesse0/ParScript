@@ -35,7 +35,13 @@ class ChatResponse(BaseModel):
     reply: str
     code: str
     input_tokens: int
-    output_tokens: int
+    output_tokens: int  # includes reasoning_tokens (Responses API accounting)
+    # hidden thinking tokens the model spent before answering (part of
+    # output_tokens); a high value on a simple ask = a vague prompt.
+    reasoning_tokens: int = 0
+    # short natural-language gist of the model's reasoning ("" if none) --
+    # not the raw chain-of-thought, which OpenAI never exposes.
+    reasoning_summary: str = ""
     # id of the attempts row recorded for this chat call (routes/chat.py must
     # insert one per call via dataaccess.attempts.insert_attempt).
     attempt_id: str

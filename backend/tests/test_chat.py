@@ -147,11 +147,13 @@ class TestChatEndToEnd(unittest.TestCase):
         sig = self.problem["function_signature"]
 
         # turn 1
-        reply1, code1, in1, out1 = asyncio.run(
+        reply1, code1, in1, out1, reason1, summary1 = asyncio.run(
             chat_completion(sig, [{"role": "user", "content": prompt1}])
         )
         self.assertGreater(in1, 0)
         self.assertGreater(out1, 0)
+        self.assertGreaterEqual(out1, reason1)  # reasoning tokens are part of output
+        self.assertIsInstance(summary1, str)
         self.assertIn("def two_sum", code1)
         a1 = insert_attempt(
             user_id=self.user_id,
@@ -161,6 +163,8 @@ class TestChatEndToEnd(unittest.TestCase):
             code=code1,
             input_tokens=in1,
             output_tokens=out1,
+            reasoning_tokens=reason1,
+            reasoning_summary=summary1,
             model=self.settings.openai_model,
         )
         self.assertTrue(a1["id"])
@@ -171,7 +175,7 @@ class TestChatEndToEnd(unittest.TestCase):
             {"role": "assistant", "content": reply1},
             {"role": "user", "content": "Add a docstring and keep it O(n) time."},
         ]
-        reply2, code2, in2, _ = asyncio.run(chat_completion(sig, history2))
+        reply2, code2, in2, _, _, _ = asyncio.run(chat_completion(sig, history2))
         self.assertIn("def two_sum", code2)
         self.assertGreater(in2, in1)  # longer context -> more input tokens
 

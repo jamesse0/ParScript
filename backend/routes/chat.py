@@ -3,7 +3,8 @@
 Owner: Full-stack generalist (DESIGN.md §8.3). Implemented against services/openai_client.py.
 
   POST /chat  {problem_id, message_history}
-    -> {reply, code, input_tokens, output_tokens, attempt_id}
+    -> {reply, code, input_tokens, output_tokens, reasoning_tokens,
+        reasoning_summary, attempt_id}
 
 Authed: every call records one `attempts` row (the chat history + returned code +
 this call's tokens) for reproducibility -- see supabase/migrations/0001_init.sql.
@@ -35,8 +36,8 @@ async def chat(body: ChatRequest, user=Depends(require_profile)) -> ChatResponse
         raise HTTPException(status_code=422, detail="message_history must end with a user message")
 
     try:
-        reply, code, input_tokens, output_tokens = await chat_completion(
-            problem["function_signature"], history
+        reply, code, input_tokens, output_tokens, reasoning_tokens, reasoning_summary = (
+            await chat_completion(problem["function_signature"], history)
         )
     except OpenAICallError as exc:
         raise HTTPException(status_code=502, detail=f"OpenAI call failed: {exc}")
@@ -49,6 +50,8 @@ async def chat(body: ChatRequest, user=Depends(require_profile)) -> ChatResponse
         code=code,
         input_tokens=input_tokens,
         output_tokens=output_tokens,
+        reasoning_tokens=reasoning_tokens,
+        reasoning_summary=reasoning_summary,
         model=settings.openai_model,
     )
 
@@ -57,5 +60,7 @@ async def chat(body: ChatRequest, user=Depends(require_profile)) -> ChatResponse
         code=code,
         input_tokens=input_tokens,
         output_tokens=output_tokens,
+        reasoning_tokens=reasoning_tokens,
+        reasoning_summary=reasoning_summary,
         attempt_id=attempt["id"],
     )

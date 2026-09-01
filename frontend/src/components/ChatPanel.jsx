@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Markdown from './Markdown'
 
 export default function ChatPanel({ messages, onSend, sending, resetSignal }) {
   const [draft, setDraft] = useState('')
@@ -32,9 +33,22 @@ export default function ChatPanel({ messages, onSend, sending, resetSignal }) {
           m.role === 'assistant' ? (
             <div key={i} className="chat-message chat-assistant">
               <button type="button" className="chat-reply-toggle" onClick={() => toggleReply(i)}>
-                {openReplies.has(i) ? '▾' : '▸'} Show prompt response
+                {openReplies.has(i) ? '▾' : '▸'} Show response &amp; model thinking
+                {m.reasoningTokens > 0 && (
+                  <span className="chat-thinking-badge">{m.reasoningTokens} thinking tokens</span>
+                )}
               </button>
-              {openReplies.has(i) && <p>{m.content}</p>}
+              {openReplies.has(i) && (
+                <div className="chat-detail">
+                  {m.reasoningSummary && (
+                    <>
+                      <Markdown text={m.reasoningSummary} />
+                      <hr className="chat-detail-divider" />
+                    </>
+                  )}
+                  <Markdown text={m.content} />
+                </div>
+              )}
             </div>
           ) : (
             <div key={i} className="chat-message chat-user">

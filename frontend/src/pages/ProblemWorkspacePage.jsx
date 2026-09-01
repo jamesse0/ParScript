@@ -94,7 +94,11 @@ export default function ProblemWorkspacePage() {
   const attemptRef = useRef(0)
   const reviewRef = useRef(null)
 
-  const { inputTokens, outputTokens, addUsage, reset: resetTokens } = useTokenCounter(saved?.inputTokens, saved?.outputTokens)
+  const { inputTokens, outputTokens, reasoningTokens, addUsage, reset: resetTokens } = useTokenCounter(
+    saved?.inputTokens,
+    saved?.outputTokens,
+    saved?.reasoningTokens,
+  )
   const {
     elapsedSeconds,
     start,
@@ -132,6 +136,7 @@ export default function ProblemWorkspacePage() {
       reviewComments,
       inputTokens,
       outputTokens,
+      reasoningTokens,
       startedAt,
       elapsedSeconds,
     })
@@ -146,6 +151,7 @@ export default function ProblemWorkspacePage() {
     reviewComments,
     inputTokens,
     outputTokens,
+    reasoningTokens,
     startedAt,
     elapsedSeconds,
   ])
@@ -205,10 +211,18 @@ export default function ProblemWorkspacePage() {
     try {
       const res = await postChat(problem.id, newMessages)
       if (attempt !== attemptRef.current) return
-      setMessages([...newMessages, { role: 'assistant', content: res.reply }])
+      setMessages([
+        ...newMessages,
+        {
+          role: 'assistant',
+          content: res.reply,
+          reasoningSummary: res.reasoning_summary,
+          reasoningTokens: res.reasoning_tokens,
+        },
+      ])
       setCode(res.code)
       setLastAttemptId(res.attempt_id)
-      addUsage(res.input_tokens, res.output_tokens)
+      addUsage(res.input_tokens, res.output_tokens, res.reasoning_tokens)
     } catch (e) {
       if (attempt !== attemptRef.current) return
       setError(e.message)
@@ -305,7 +319,12 @@ export default function ProblemWorkspacePage() {
       <div className="workspace-main">
         <div className="workspace-stats">
           {!isManual && (
-            <TokenCounter inputTokens={inputTokens} outputTokens={outputTokens} parTokens={problem.par_tokens} />
+            <TokenCounter
+              inputTokens={inputTokens}
+              outputTokens={outputTokens}
+              reasoningTokens={reasoningTokens}
+              parTokens={problem.par_tokens}
+            />
           )}
           <Timer elapsedSeconds={elapsedSeconds} />
         </div>
