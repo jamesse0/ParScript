@@ -16,7 +16,7 @@ router = APIRouter(tags=["problems"])
 
 @router.get("/problems", response_model=list[ProblemSummary])
 async def list_problems(
-    difficulty: str | None = Query(default=None, pattern="^(easy|medium|hard)$"),
+    difficulty: str | None = Query(default=None, pattern="^(easy|medium|hard|system_design)$"),
 ):
     return problems_dao.list_problems(difficulty)
 

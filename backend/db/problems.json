@@ -276,5 +276,38 @@
             { "input": [[0, 1]], "expected_output": true },
             { "input": [[0, 2]], "expected_output": false }
         ]
+    },
+    {
+        "slug": "cache-with-ttl-and-lru",
+        "title": "In-Memory Cache with TTL + LRU Eviction",
+        "description": "Create a single-file class `Cache`: a fixed-capacity key-value store with TTL expiry and LRU eviction. Use `time.time()` for timing.\n\n- `Cache(capacity)` — max number of live items.\n- `put(key, value, ttl_seconds=None)` — insert or overwrite. `None` never expires. If a new key would exceed capacity, evict an expired item if one exists, otherwise the least-recently-used live item.\n- `get(key)` — the value, or `None` if the key is missing or expired.\n- `size()` — number of live (non-expired) items.\n\nDetails the tests check:\n- Expired means `now > insert_time + ttl_seconds`; an expired item counts as absent even before it's evicted.\n- Only `get()` on a live key refreshes its LRU recency; `get()` on an expired key does not.\n- `put()` on an existing key updates its value and TTL but keeps its LRU position.",
+        "difficulty": "system_design",
+        "par_tokens": 10000,
+        "function_signature": "class Cache:\n    def __init__(self, capacity: int):\n        ...\n\n    def put(self, key, value, ttl_seconds: float | None = None) -> None:\n        ...\n\n    def get(self, key):\n        ...\n\n    def size(self) -> int:\n        ...",
+        "starter_code": "import time\nfrom typing import Optional\n\nclass Cache:\n    def __init__(self, capacity: int):\n        # your code here\n        pass\n\n    def put(self, key, value, ttl_seconds: Optional[float] = None) -> None:\n        # your code here\n        pass\n\n    def get(self, key):\n        # your code here\n        pass\n\n    def size(self) -> int:\n        # your code here\n        pass\n",
+        "test_kind": "pytest",
+        "test_file": "system_design_tests/cache-with-ttl-and-lru.py"
+    },
+    {
+        "slug": "editor-undo-redo-stack",
+        "title": "Text Editor with Undo/Redo Command Stack",
+        "description": "Create a single-file command pattern undo/redo for a text editor.\n\n- `Command` — abstract base with `do(self, editor)` and `undo(self, editor)`. A command stores whatever state it needs (in `__init__` or during `do`) to reverse itself.\n- `Editor` — `__init__` sets public `self.text = \"\"`. Concrete commands (defined elsewhere) read and mutate `editor.text` directly.\n  - `execute(command)` — runs `command.do(self)`, records it, and discards any redo history.\n  - `undo() -> bool` — runs the last command's `undo(self)`, moves it to redo history, returns `True`; returns `False` (no-op, no exception) if there's nothing to undo.\n  - `redo() -> bool` — re-runs the last undone command's `do(self)` (there is no separate redo method), moves it back to undo history, returns `True`; returns `False` (no-op) if there's nothing to redo.",
+        "difficulty": "system_design",
+        "par_tokens": 1500,
+        "function_signature": "class Command(ABC):\n    def do(self, editor: \"Editor\") -> None:\n        ...\n\n    def undo(self, editor: \"Editor\") -> None:\n        ...\n\n\nclass Editor:\n    def __init__(self):\n        self.text: str = \"\"\n\n    def execute(self, command: Command) -> None:\n        ...\n\n    def undo(self) -> bool:\n        ...\n\n    def redo(self) -> bool:\n        ...",
+        "starter_code": "from abc import ABC, abstractmethod\n\n\nclass Command(ABC):\n    @abstractmethod\n    def do(self, editor: \"Editor\") -> None:\n        pass\n\n    @abstractmethod\n    def undo(self, editor: \"Editor\") -> None:\n        pass\n\n\nclass Editor:\n    def __init__(self):\n        self.text: str = \"\"\n\n    def execute(self, command: Command) -> None:\n        # your code here\n        pass\n\n    def undo(self) -> bool:\n        # your code here\n        pass\n\n    def redo(self) -> bool:\n        # your code here\n        pass\n",
+        "test_kind": "pytest",
+        "test_file": "system_design_tests/editor-undo-redo-stack.py"
+    },
+    {
+        "slug": "filesystem-tree-size-aggregation",
+        "title": "File System Tree with Size Aggregation",
+        "description": "Create a single-file filesystem model.\n\n- `File(name, size)` — public `self.name`, `self.size`. `total_size()` returns `self.size`.\n- `Folder(name)` — public `self.name`, starts empty.\n  - `add_child(child)` — add a `File` or `Folder` as a direct child (rely on its `.name` and `.total_size()`). Raise `ValueError` if a direct child with that name already exists.\n  - `remove_child(name)` — remove the direct child with that name; raise `KeyError` if there is none.\n  - `total_size()` — sum of `child.total_size()` over all direct children (nested folders recurse via their own `total_size()`). Reflects current contents; don't cache.",
+        "difficulty": "system_design",
+        "par_tokens": 2500,
+        "function_signature": "class File:\n    def __init__(self, name: str, size: int):\n        ...\n\n    def total_size(self) -> int:\n        ...\n\n\nclass Folder:\n    def __init__(self, name: str):\n        ...\n\n    def add_child(self, child) -> None:\n        ...\n\n    def remove_child(self, name: str) -> None:\n        ...\n\n    def total_size(self) -> int:\n        ...",
+        "starter_code": "class File:\n    def __init__(self, name: str, size: int):\n        self.name = name\n        self.size = size\n\n    def total_size(self) -> int:\n        # your code here\n        pass\n\n\nclass Folder:\n    def __init__(self, name: str):\n        self.name = name\n        # your code here\n\n    def add_child(self, child) -> None:\n        # your code here\n        pass\n\n    def remove_child(self, name: str) -> None:\n        # your code here\n        pass\n\n    def total_size(self) -> int:\n        # your code here\n        pass\n",
+        "test_kind": "pytest",
+        "test_file": "system_design_tests/filesystem-tree-size-aggregation.py"
     }
 ]

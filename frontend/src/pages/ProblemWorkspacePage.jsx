@@ -272,6 +272,12 @@ export default function ProblemWorkspacePage() {
           <span className={`tag tag-${problem.difficulty}`}>{problem.difficulty}</span>
           <ProblemDescription text={problem.description} />
           <pre>{problem.function_signature}</pre>
+          {problem.test_kind === 'pytest' && (
+            <p className="workspace-hint">
+              Graded by a hidden test suite. Match the exact class and method names in the
+              signature above &mdash; a mismatch fails every test.
+            </p>
+          )}
         </div>
 
         <div className="workspace-leaderboard">
@@ -321,7 +327,7 @@ export default function ProblemWorkspacePage() {
         {testResults && (
           <div className="workspace-results">
             <h2>{passed ? 'All tests passed' : 'Some tests failed'}</h2>
-            <TestResultsList results={testResults} />
+            <TestResultsList results={testResults} testKind={problem.test_kind} />
           </div>
         )}
       </div>

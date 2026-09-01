@@ -87,7 +87,7 @@ class ProblemSummary(BaseModel):
     id: int
     slug: str
     title: str
-    difficulty: str  # "easy" | "medium" | "hard"
+    difficulty: str  # "easy" | "medium" | "hard" | "system_design"
     par_tokens: int
 
 
@@ -95,7 +95,10 @@ class ProblemDetail(ProblemSummary):
     description: str
     function_signature: str
     starter_code: str
-    test_cases: list[dict]  # [{input, expected_output}]
+    # "io_pairs" -> compare run_code(*args) == expected; "pytest" -> hidden
+    # pytest module (system_design). The grading test_file is never sent.
+    test_kind: str = "io_pairs"
+    test_cases: list[dict] | None = None  # [{input, expected_output}]; null for pytest problems
 
 
 # --- GET /leaderboard/{problem_id} --------------------------------

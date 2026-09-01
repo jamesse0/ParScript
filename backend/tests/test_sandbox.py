@@ -13,6 +13,7 @@ Run from backend/:
     PARSCRIPT_DOCKER_TESTS=1 .venv/bin/python -m unittest discover -s tests
 """
 
+import importlib.util
 import json
 import os
 import shutil
@@ -27,11 +28,15 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 from services.sandbox_runner import (  # noqa: E402
+    _PYTEST_HARNESS,
     SandboxError,
     _build_combined_source,
     _extract_function_name,
+    run_pytest_submission,
     run_submission,
 )
+
+_HAS_PYTEST = importlib.util.find_spec("pytest") is not None
 
 PROBLEMS = {
     p["slug"]: p
@@ -171,6 +176,117 @@ class TestHarnessLocally(unittest.TestCase):
         self.assertTrue(result["passed"])
 
 
+# --- test_kind = "pytest" (system_design category) -------------------------
+
+BANK_OK = """
+class BankAccount:
+    def __init__(self, balance=0):
+        self._balance = balance
+
+    @property
+    def balance(self):
+        return self._balance
+
+    def deposit(self, amount):
+        if amount <= 0:
+            raise ValueError("amount must be positive")
+        self._balance += amount
+
+    def withdraw(self, amount):
+        if amount <= 0:
+            raise ValueError("amount must be positive")
+        if amount > self._balance:
+            raise ValueError("insufficient funds")
+        self._balance -= amount
+"""
+
+# withdraw() lets the balance go negative -- the overdraft test should fail.
+BANK_OVERDRAFT_BUG = BANK_OK.replace(
+    '        if amount > self._balance:\n            raise ValueError("insufficient funds")\n', ""
+)
+
+# wrong class name -> the test module's `from solution import BankAccount` fails
+# at collection time.
+BANK_WRONG_NAME = BANK_OK.replace("class BankAccount", "class Account")
+
+BANK_TEST_FILE = '''
+import pytest
+from solution import BankAccount
+
+
+def test_starts_at_zero():
+    assert BankAccount().balance == 0
+
+
+def test_deposit_increases_balance():
+    acct = BankAccount()
+    acct.deposit(100)
+    assert acct.balance == 100
+
+
+def test_overdraft_is_rejected():
+    acct = BankAccount(50)
+    with pytest.raises(ValueError):
+        acct.withdraw(100)
+    assert acct.balance == 50
+'''
+
+
+def run_pytest_harness_locally(code: str, test_file: str) -> dict:
+    """What run_pytest_submission does, but with `python` instead of `docker run`."""
+    with tempfile.TemporaryDirectory() as tmp:
+        Path(tmp, "solution.py").write_text(code)
+        Path(tmp, "test_solution.py").write_text(test_file)
+        Path(tmp, "pytest_harness.py").write_text(_PYTEST_HARNESS.read_text())
+        proc = subprocess.run(
+            [sys.executable, "pytest_harness.py"],
+            cwd=tmp,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+    last_line = proc.stdout.strip().splitlines()[-1] if proc.stdout.strip() else ""
+    return json.loads(last_line)
+
+
+@unittest.skipUnless(_HAS_PYTEST, "pip install pytest to exercise sandbox/pytest_harness.py")
+class TestPytestHarnessLocally(unittest.TestCase):
+    def test_correct_solution_passes_every_test(self):
+        result = run_pytest_harness_locally(BANK_OK, BANK_TEST_FILE)
+        self.assertTrue(result["passed"])
+        self.assertEqual(len(result["results"]), 3)
+        names = {r["input"] for r in result["results"]}
+        self.assertIn("test_solution.py::test_overdraft_is_rejected", names)
+        for r in result["results"]:
+            self.assertTrue(r["passed"])
+            self.assertNotIn("error", r)
+
+    def test_one_failing_test_is_isolated_and_named(self):
+        result = run_pytest_harness_locally(BANK_OVERDRAFT_BUG, BANK_TEST_FILE)
+        self.assertFalse(result["passed"])
+        by_name = {r["input"]: r for r in result["results"]}
+        self.assertTrue(by_name["test_solution.py::test_starts_at_zero"]["passed"])
+        failed = by_name["test_solution.py::test_overdraft_is_rejected"]
+        self.assertFalse(failed["passed"])
+        self.assertIn("error", failed)
+        # the failure message must not leak the test body or file paths
+        blob = json.dumps(result)
+        self.assertNotIn("def test_", blob)
+        self.assertNotIn("with pytest.raises", blob)
+        self.assertNotIn("/solution.py", blob)
+        self.assertNotIn(str(BACKEND_DIR), blob)
+
+    def test_wrong_class_name_is_a_collection_error(self):
+        result = run_pytest_harness_locally(BANK_WRONG_NAME, BANK_TEST_FILE)
+        self.assertFalse(result["passed"])
+        self.assertEqual(len(result["results"]), 1)
+        entry = result["results"][0]
+        self.assertFalse(entry["passed"])
+        self.assertIn("collection error", entry["input"])
+        self.assertIn("BankAccount", entry["error"])
+        self.assertNotIn("def test_", json.dumps(result))
+
+
 @unittest.skipUnless(
     os.environ.get("PARSCRIPT_DOCKER_TESTS") == "1" and shutil.which("docker"),
     "set PARSCRIPT_DOCKER_TESTS=1 (and build parscript-sandbox) to run the real docker path",
@@ -183,6 +299,19 @@ class TestDockerSandbox(unittest.TestCase):
         )
         self.assertTrue(passed)
         self.assertTrue(all(r["passed"] for r in results))
+
+    def test_pytest_solution_through_docker(self):
+        passed, results = run_pytest_submission(BANK_OK, BANK_TEST_FILE)
+        self.assertTrue(passed)
+        self.assertEqual(len(results), 3)
+        self.assertTrue(all(r["passed"] for r in results))
+
+    def test_pytest_failure_through_docker(self):
+        passed, results = run_pytest_submission(BANK_OVERDRAFT_BUG, BANK_TEST_FILE)
+        self.assertFalse(passed)
+        blob = json.dumps(results)
+        self.assertNotIn("def test_", blob)
+        self.assertNotIn("/sandbox", blob)
 
     def test_infinite_loop_hits_timeout(self):
         from config import settings

@@ -6,3 +6,8 @@ supabase
 pyjwt
 openai
 python-dotenv
+
+# Grades the "system_design" problem category. Runs inside the sandbox image
+# (see sandbox/Dockerfile); also needed to exercise sandbox/pytest_harness.py
+# in tests/test_sandbox.py.
+pytest==8.3.4
