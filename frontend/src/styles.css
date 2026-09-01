@@ -1,7 +1,8 @@
 :root {
-  --bg: #f4f5f7;
+  --bg: #ffffff;
   --surface: #ffffff;
   --surface-muted: #f6f7f9;
+  --header-bg: #e7f3e9;
   --text: #14181f;
   --text-muted: #6b7280;
   --border: #e5e7eb;
@@ -88,7 +89,7 @@ button {
   justify-content: space-between;
   padding: 0.2rem 1.75rem;
   border-bottom: 1px solid var(--border);
-  background: var(--surface);
+  background: var(--header-bg);
 }
 .app-nav .brand { display: flex; align-items: center; }
 .app-nav .brand-logo { height: 52px; width: auto; display: block; }
