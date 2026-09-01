@@ -4,7 +4,7 @@ import { getProblem } from '../api/problems'
 import { postChat } from '../api/chat'
 import { postSubmit } from '../api/submit'
 import { postReview } from '../api/review'
-import { getLeaderboard } from '../api/leaderboard'
+import { getLeaderboard, getSubmissionPrompts } from '../api/leaderboard'
 import { useTokenCounter } from '../hooks/useTokenCounter'
 import { useElapsedTimer } from '../hooks/useElapsedTimer'
 import { loadWorkspaceState, saveWorkspaceState, clearWorkspaceState } from '../lib/workspaceStorage'
@@ -17,6 +17,7 @@ import ReviewComments from '../components/ReviewComments'
 import LeaderboardTable from '../components/LeaderboardTable'
 import ModeToggle from '../components/ModeToggle'
 import ProblemDescription from '../components/ProblemDescription'
+import PromptTrace from '../components/PromptTrace'
 import { difficultyLabel } from '../lib/difficulty'
 
 const SIDEBAR_WIDTH_KEY = 'parscript:sidebarWidth'
@@ -91,6 +92,7 @@ export default function ProblemWorkspacePage() {
 
   const [leaderboard, setLeaderboard] = useState(null)
   const [leaderboardError, setLeaderboardError] = useState(null)
+  const [trace, setTrace] = useState(null) // { open, loading, error, data }
 
   const attemptRef = useRef(0)
   const reviewRef = useRef(null)
@@ -102,12 +104,12 @@ export default function ProblemWorkspacePage() {
   )
   const {
     elapsedSeconds,
-    start,
+    start: startTimer,
+    pause: pauseTimer,
     stop: stopTimer,
     currentElapsedSeconds,
-    startedAt,
     reset: resetTimer,
-  } = useElapsedTimer(saved?.startedAt, !saved?.passed, saved?.elapsedSeconds)
+  } = useElapsedTimer(saved?.elapsedSeconds)
 
   useEffect(() => {
     getProblem(problemId)
@@ -120,11 +122,12 @@ export default function ProblemWorkspacePage() {
       .catch((e) => setError(e.message))
   }, [problemId, saved])
 
-  // Manual mode: the clock runs from the moment the page is ready, not from a
-  // first chat message. start() is idempotent, so re-running is harmless.
+  // Manual mode: the clock runs continuously from the moment the page is ready.
+  // (Prompt mode instead resumes/pauses the timer around each LLM call in
+  // handleSend, so it only counts time spent waiting on the model.)
   useEffect(() => {
-    if (problem && mode === 'manual' && !passed) start()
-  }, [problem, mode, passed, start])
+    if (problem && mode === 'manual' && !passed) startTimer()
+  }, [problem, mode, passed, startTimer])
 
   useEffect(() => {
     saveWorkspaceState(problemId, {
@@ -138,7 +141,6 @@ export default function ProblemWorkspacePage() {
       inputTokens,
       outputTokens,
       reasoningTokens,
-      startedAt,
       elapsedSeconds,
     })
   }, [
@@ -153,7 +155,6 @@ export default function ProblemWorkspacePage() {
     inputTokens,
     outputTokens,
     reasoningTokens,
-    startedAt,
     elapsedSeconds,
   ])
 
@@ -170,6 +171,20 @@ export default function ProblemWorkspacePage() {
   useEffect(() => {
     refreshLeaderboard()
   }, [problemId])
+
+  const openTrace = async (row) => {
+    setTrace({ open: true, loading: true, error: null, data: null })
+    try {
+      const data = await getSubmissionPrompts(row.submission_id)
+      setTrace({ open: true, loading: false, error: null, data })
+    } catch (e) {
+      const msg =
+        e.status === 403
+          ? "Submit a working solution to this problem to see other players' prompts."
+          : e.message
+      setTrace({ open: true, loading: false, error: msg, data: null })
+    }
+  }
 
   useEffect(() => {
     if (reviewComments) {
@@ -193,7 +208,7 @@ export default function ProblemWorkspacePage() {
     resetTimer()
   }
 
-  const handleReplay = () => {
+  const handleReset = () => {
     resetSession()
   }
 
@@ -205,7 +220,9 @@ export default function ProblemWorkspacePage() {
 
   const handleSend = async (content) => {
     const attempt = attemptRef.current
-    start()
+    // Prompt-mode timer: runs only while a generation is in flight. Resume on
+    // send, pause once the response (or an error) comes back -- see finally.
+    startTimer()
     const newMessages = [...messages, { role: 'user', content }]
     setMessages(newMessages)
     setSending(true)
@@ -228,7 +245,10 @@ export default function ProblemWorkspacePage() {
       if (attempt !== attemptRef.current) return
       setError(e.message)
     } finally {
-      if (attempt === attemptRef.current) setSending(false)
+      if (attempt === attemptRef.current) {
+        pauseTimer()
+        setSending(false)
+      }
     }
   }
 
@@ -280,8 +300,8 @@ export default function ProblemWorkspacePage() {
         <div className="workspace-description">
           <div className="workspace-title-row">
             <h1>{problem.title}</h1>
-            <button className="btn btn-outline" onClick={handleReplay}>
-              Replay Problem
+            <button className="btn btn-outline" onClick={handleReset}>
+              Reset Problem
             </button>
           </div>
           <span className={`tag tag-${problem.difficulty}`}>{difficultyLabel(problem.difficulty)}</span>
@@ -299,7 +319,12 @@ export default function ProblemWorkspacePage() {
           <h2>Leaderboard</h2>
           {leaderboardError && <p className="error">{leaderboardError}</p>}
           {!leaderboard && !leaderboardError && <p>Loading...</p>}
-          {leaderboard && (leaderboard.length ? <LeaderboardTable rows={leaderboard} mode="prompt" /> : <p>No submissions yet.</p>)}
+          {leaderboard &&
+            (leaderboard.length ? (
+              <LeaderboardTable rows={leaderboard.slice(0, 3)} mode="prompt" onSelectRow={openTrace} />
+            ) : (
+              <p>No submissions yet.</p>
+            ))}
           <Link className="leaderboard-more" to={`/problems/${problemId}/leaderboard`}>
             Full leaderboard &rarr;
           </Link>
@@ -351,6 +376,14 @@ export default function ProblemWorkspacePage() {
           </div>
         )}
       </div>
+
+      <PromptTrace
+        open={Boolean(trace?.open)}
+        loading={Boolean(trace?.loading)}
+        error={trace?.error}
+        data={trace?.data}
+        onClose={() => setTrace(null)}
+      />
     </div>
   )
 }

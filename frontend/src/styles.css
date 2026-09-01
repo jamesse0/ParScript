@@ -327,6 +327,8 @@ button {
   font-size: 0.9rem;
   line-height: 1.6;
 }
+/* space between the intro prose and the first example */
+.markdown + .example-block { margin-top: 1rem; }
 .example-title { margin: 0 0 0.3rem; font-weight: 700; }
 .example-row {
   margin: 0 0 0.2rem;
@@ -416,9 +418,9 @@ button {
 }
 .chat-message.chat-assistant p { margin-top: 0.4rem; }
 .chat-pending { color: var(--text-muted); font-style: italic; }
-.chat-input { display: flex; align-items: flex-end; gap: 0.6rem; margin-top: 0.75rem; }
+.chat-input { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.75rem; }
 .chat-input textarea {
-  flex: 1;
+  width: 100%;
   min-height: 180px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -428,6 +430,7 @@ button {
   resize: vertical;
 }
 .chat-input textarea:focus { outline: none; border-color: var(--accent); }
+.chat-input button { align-self: flex-end; }
 
 /* ---------- code panel ---------- */
 .code-panel { border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); }
@@ -551,3 +554,51 @@ th { color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; le
 /* ---------- leaderboard ---------- */
 .leaderboard-page { padding: 2rem 1.75rem; max-width: 800px; margin: 0 auto; }
 .leaderboard-subtitle { color: var(--text-muted); font-size: 0.85rem; margin: -0.5rem 0 1.5rem; }
+.muted { color: var(--text-muted); font-size: 0.85rem; }
+.leaderboard-table.clickable tbody tr { cursor: pointer; transition: background 0.12s ease; }
+.leaderboard-table tbody tr.row-clickable:hover { background: var(--accent-soft); }
+
+/* ---------- modal + prompt trace ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 24, 40, 0.45);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 6vh 1rem 2rem;
+  z-index: 50;
+}
+.modal {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-hover);
+  max-width: 640px;
+  width: 100%;
+  max-height: 82vh;
+  overflow-y: auto;
+  padding: 1.5rem 1.75rem;
+}
+.modal-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.7rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--text-muted);
+}
+.modal-close:hover { color: var(--text); }
+.prompt-trace-title { margin: 0 0 0.25rem; font-size: 1.2rem; }
+.prompt-trace-meta { margin-top: 1rem; }
+.prompt-trace-list { margin: 0.75rem 0 0; padding-left: 1.4rem; display: flex; flex-direction: column; gap: 0.6rem; }
+.prompt-trace-list li { padding-left: 0.25rem; }
+.prompt-trace-list .markdown { font-size: 0.9rem; }
+.no-copy {
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}

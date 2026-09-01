@@ -47,6 +47,38 @@ def insert_submission(
     return get_supabase().table("submissions").insert(row).execute().data[0]
 
 
+def get_submission(submission_id: str) -> dict | None:
+    """One submission row (+ its author's username), or None. Used by the
+    prompt-trace endpoint to resolve a leaderboard score back to its attempt."""
+    rows = (
+        get_supabase()
+        .table("submissions")
+        .select("id, user_id, problem_id, attempt_id, mode, passed, profiles(username)")
+        .eq("id", submission_id)
+        .limit(1)
+        .execute()
+        .data
+    )
+    return rows[0] if rows else None
+
+
+def user_has_passed(user_id: str, problem_id: int | str) -> bool:
+    """True if this user has any passing submission for the problem (any mode).
+    Gates whether they may view other players' prompt traces for it."""
+    rows = (
+        get_supabase()
+        .table("submissions")
+        .select("id")
+        .eq("user_id", user_id)
+        .eq("problem_id", problem_id)
+        .eq("passed", True)
+        .limit(1)
+        .execute()
+        .data
+    )
+    return bool(rows)
+
+
 def leaderboard_for_problem(problem_id: int | str, mode: str = "prompt") -> list[dict]:
     """Leaderboard rows for one problem, scoped to `mode`.
 
@@ -61,7 +93,7 @@ def leaderboard_for_problem(problem_id: int | str, mode: str = "prompt") -> list
         get_supabase()
         .table("submissions")
         .select(
-            "user_id, input_tokens, output_tokens, elapsed_seconds, created_at, "
+            "id, user_id, input_tokens, output_tokens, elapsed_seconds, created_at, "
             "profiles(username)"
         )
         .eq("problem_id", problem_id)
@@ -94,6 +126,8 @@ def leaderboard_for_problem(problem_id: int | str, mode: str = "prompt") -> list
 
         best_by_user[user_id] = {
             "_rank_key": rank_key,
+            "user_id": user_id,
+            "submission_id": row.get("id"),
             "username": profile.get("username", ""),
             "total_input_tokens": total_input_tokens,
             "total_output_tokens": total_output_tokens,

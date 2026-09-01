@@ -52,3 +52,19 @@ def insert_attempt(
         row.pop("reasoning_tokens", None)
         row.pop("reasoning_summary", None)
         return table.insert(row).execute().data[0]
+
+
+def get_attempt(attempt_id: str) -> dict | None:
+    """One attempt row, or None. `message_history` holds the full
+    [{role, content}, ...] conversation up to and including that turn -- the
+    prompt-trace endpoint filters it to the user's messages."""
+    rows = (
+        get_supabase()
+        .table("attempts")
+        .select("id, user_id, problem_id, message_history, model, created_at")
+        .eq("id", attempt_id)
+        .limit(1)
+        .execute()
+        .data
+    )
+    return rows[0] if rows else None
