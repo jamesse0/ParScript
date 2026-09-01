@@ -35,15 +35,30 @@ function loadSidebarWidth() {
   return DEFAULT_SIDEBAR_WIDTH
 }
 
-export default function ProblemWorkspacePage() {
-  const { problemId } = useParams()
+export default function ProblemWorkspacePage({ courseContext = null }) {
+  const routeParams = useParams()
+  // In a course the step's problem id + a namespaced storage key come from the
+  // runner; standalone it's the route param and the bare problem id.
+  const problemId = courseContext ? String(courseContext.problemId) : routeParams.problemId
+  const storageId = courseContext
+    ? `course:${courseContext.course.slug}:${courseContext.stepIndex}`
+    : problemId
   const [problem, setProblem] = useState(null)
   const [error, setError] = useState(null)
 
-  const [saved] = useState(() => loadWorkspaceState(problemId))
+  const [saved] = useState(() => loadWorkspaceState(storageId))
+
+  // A course step starts fresh from the carried-forward code. A saved snapshot
+  // only counts as a real resume if it has chat history for this step -- an
+  // untouched step's auto-save, or a stale one left by an earlier run of the
+  // same course, must not shadow carryCode.
+  const courseFresh = Boolean(courseContext) && !saved?.messages?.length
+  const restore = courseFresh ? null : saved
 
   // 'prompt' = chat with the AI; 'manual' = hand-write the solution, ranked by time.
-  const [mode, setMode] = useState(saved?.mode ?? 'prompt')
+  // Course steps are always prompt mode (the whole point is measuring tokens).
+  const [modeState, setModeState] = useState(restore?.mode ?? 'prompt')
+  const mode = courseContext ? 'prompt' : modeState
 
   const [sidebarWidth, setSidebarWidth] = useState(loadSidebarWidth)
   const [resizingSidebar, setResizingSidebar] = useState(false)
@@ -79,15 +94,18 @@ export default function ProblemWorkspacePage() {
     window.addEventListener('mouseup', onMouseUp)
   }
 
-  const [messages, setMessages] = useState(saved?.messages ?? [])
-  const [code, setCode] = useState(saved?.code ?? '')
-  const [lastAttemptId, setLastAttemptId] = useState(saved?.lastAttemptId ?? null)
+  const [messages, setMessages] = useState(restore?.messages ?? [])
+  const [code, setCode] = useState(
+    courseFresh ? (courseContext.carryCode ?? '') : (saved?.code ?? ''),
+  )
+  const [lastAttemptId, setLastAttemptId] = useState(restore?.lastAttemptId ?? null)
+  const [submissionId, setSubmissionId] = useState(restore?.submissionId ?? null)
   const [sending, setSending] = useState(false)
 
   const [submitting, setSubmitting] = useState(false)
-  const [testResults, setTestResults] = useState(saved?.testResults ?? null)
-  const [passed, setPassed] = useState(saved?.passed ?? false)
-  const [reviewComments, setReviewComments] = useState(saved?.reviewComments ?? null)
+  const [testResults, setTestResults] = useState(restore?.testResults ?? null)
+  const [passed, setPassed] = useState(restore?.passed ?? false)
+  const [reviewComments, setReviewComments] = useState(restore?.reviewComments ?? null)
   const [submitError, setSubmitError] = useState(null)
 
   const [leaderboard, setLeaderboard] = useState(null)
@@ -98,9 +116,9 @@ export default function ProblemWorkspacePage() {
   const reviewRef = useRef(null)
 
   const { inputTokens, outputTokens, reasoningTokens, addUsage, reset: resetTokens } = useTokenCounter(
-    saved?.inputTokens,
-    saved?.outputTokens,
-    saved?.reasoningTokens,
+    restore?.inputTokens,
+    restore?.outputTokens,
+    restore?.reasoningTokens,
   )
   const {
     elapsedSeconds,
@@ -109,14 +127,15 @@ export default function ProblemWorkspacePage() {
     stop: stopTimer,
     currentElapsedSeconds,
     reset: resetTimer,
-  } = useElapsedTimer(saved?.elapsedSeconds)
+  } = useElapsedTimer(restore?.elapsedSeconds)
 
   useEffect(() => {
     getProblem(problemId)
       .then((p) => {
         setProblem(p)
-        if (saved?.code === undefined) {
-          setCode(p.starter_code)
+        if (courseFresh || restore?.code === undefined) {
+          // Course step N>0 pre-fills with the code submitted for step N-1.
+          setCode(courseContext?.carryCode ?? p.starter_code)
         }
       })
       .catch((e) => setError(e.message))
@@ -130,11 +149,12 @@ export default function ProblemWorkspacePage() {
   }, [problem, mode, passed, startTimer])
 
   useEffect(() => {
-    saveWorkspaceState(problemId, {
+    saveWorkspaceState(storageId, {
       mode,
       messages,
       code,
       lastAttemptId,
+      submissionId,
       testResults,
       passed,
       reviewComments,
@@ -144,11 +164,12 @@ export default function ProblemWorkspacePage() {
       elapsedSeconds,
     })
   }, [
-    problemId,
+    storageId,
     mode,
     messages,
     code,
     lastAttemptId,
+    submissionId,
     testResults,
     passed,
     reviewComments,
@@ -159,6 +180,8 @@ export default function ProblemWorkspacePage() {
   ])
 
   const refreshLeaderboard = () => {
+    // Course runner shows a course-progress panel instead of the per-problem board.
+    if (courseContext) return
     // The sidebar widget always shows the AI (prompt) leaderboard.
     getLeaderboard(problemId, 'prompt')
       .then((rows) => {
@@ -194,10 +217,11 @@ export default function ProblemWorkspacePage() {
 
   const resetSession = () => {
     attemptRef.current += 1
-    clearWorkspaceState(problemId)
+    clearWorkspaceState(storageId)
     setMessages([])
-    setCode(problem.starter_code)
+    setCode(courseContext?.carryCode ?? problem.starter_code)
     setLastAttemptId(null)
+    setSubmissionId(null)
     setSending(false)
     setSubmitting(false)
     setTestResults(null)
@@ -215,7 +239,7 @@ export default function ProblemWorkspacePage() {
   const handleModeChange = (next) => {
     if (next === mode) return
     resetSession()
-    setMode(next)
+    setModeState(next)
   }
 
   const handleSend = async (content) => {
@@ -223,14 +247,34 @@ export default function ProblemWorkspacePage() {
     // Prompt-mode timer: runs only while a generation is in flight. Resume on
     // send, pause once the response (or an error) comes back -- see finally.
     startTimer()
-    const newMessages = [...messages, { role: 'user', content }]
-    setMessages(newMessages)
+    // First turn of a course step: hand the model the code carried over from the
+    // previous step as context. This synthetic exchange is sent to the API only --
+    // it is NOT shown in the chat transcript.
+    const carryPrefix =
+      courseContext && messages.length === 0
+        ? [
+            {
+              role: 'user',
+              content:
+                'Here is the code carried over from the previous step. Build on it:\n```python\n' +
+                code +
+                '\n```',
+            },
+            {
+              role: 'assistant',
+              content: "Understood — I'll extend this code.\n```python\n" + code + '\n```',
+            },
+          ]
+        : []
+    const visibleMessages = [...messages, { role: 'user', content }]
+    const outgoing = [...messages, ...carryPrefix, { role: 'user', content }]
+    setMessages(visibleMessages)
     setSending(true)
     try {
-      const res = await postChat(problem.id, newMessages)
+      const res = await postChat(problem.id, outgoing)
       if (attempt !== attemptRef.current) return
       setMessages([
-        ...newMessages,
+        ...visibleMessages,
         {
           role: 'assistant',
           content: res.reply,
@@ -269,6 +313,7 @@ export default function ProblemWorkspacePage() {
       if (attempt !== attemptRef.current) return
       setTestResults(res.test_results)
       setPassed(res.passed)
+      setSubmissionId(res.submission_id)
       if (res.passed) {
         stopTimer()
         const reviewRes = await postReview(problem.id, code)
@@ -284,6 +329,16 @@ export default function ProblemWorkspacePage() {
     }
   }
 
+  const handleCourseNext = () => {
+    courseContext.onStepComplete({
+      code,
+      submissionId,
+      inputTokens,
+      outputTokens,
+      elapsedSeconds: currentElapsedSeconds(),
+    })
+  }
+
   if (error) return <p className="error">{error}</p>
   if (!problem) return <p>Loading...</p>
 
@@ -295,13 +350,13 @@ export default function ProblemWorkspacePage() {
       style={{ gridTemplateColumns: `${sidebarWidth}px 24px 1fr` }}
     >
       <div className="workspace-sidebar">
-        <ModeToggle value={mode} onChange={handleModeChange} />
+        {!courseContext && <ModeToggle value={mode} onChange={handleModeChange} />}
 
         <div className="workspace-description">
           <div className="workspace-title-row">
             <h1>{problem.title}</h1>
             <button className="btn btn-outline" onClick={handleReset}>
-              Reset Problem
+              {courseContext ? 'Restart step' : 'Reset Problem'}
             </button>
           </div>
           <span className={`tag tag-${problem.difficulty}`}>{difficultyLabel(problem.difficulty)}</span>
@@ -315,20 +370,48 @@ export default function ProblemWorkspacePage() {
           )}
         </div>
 
-        <div className="workspace-leaderboard">
-          <h2>Leaderboard</h2>
-          {leaderboardError && <p className="error">{leaderboardError}</p>}
-          {!leaderboard && !leaderboardError && <p>Loading...</p>}
-          {leaderboard &&
-            (leaderboard.length ? (
-              <LeaderboardTable rows={leaderboard.slice(0, 3)} mode="prompt" onSelectRow={openTrace} />
-            ) : (
-              <p>No submissions yet.</p>
-            ))}
-          <Link className="leaderboard-more" to={`/problems/${problemId}/leaderboard`}>
-            Full leaderboard &rarr;
-          </Link>
-        </div>
+        {courseContext ? (
+          <div className="workspace-course-progress">
+            <h2>{courseContext.course.title}</h2>
+            <p className="course-step-indicator">
+              Step {courseContext.stepIndex + 1} / {courseContext.totalSteps}
+            </p>
+            <ol className="course-step-list">
+              {courseContext.course.steps.map((s, i) => (
+                <li
+                  key={s.problem_id}
+                  className={
+                    i < courseContext.stepIndex
+                      ? 'done'
+                      : i === courseContext.stepIndex
+                        ? 'current'
+                        : undefined
+                  }
+                >
+                  {s.title}
+                </li>
+              ))}
+            </ol>
+            <p className="course-running-total">
+              {(courseContext.priorTokens + inputTokens + outputTokens).toLocaleString()} tokens so far
+            </p>
+          </div>
+        ) : (
+          <div className="workspace-leaderboard">
+            <h2>Leaderboard</h2>
+            {leaderboardError && <p className="error">{leaderboardError}</p>}
+            {!leaderboard && !leaderboardError && <p>Loading...</p>}
+            {leaderboard &&
+              (leaderboard.length ? (
+                <LeaderboardTable rows={leaderboard.slice(0, 3)} mode="prompt" onSelectRow={openTrace} />
+              ) : (
+                <p>No submissions yet.</p>
+              ))}
+            <Link className="leaderboard-more" to={`/problems/${problemId}/leaderboard`}>
+              Full leaderboard &rarr;
+            </Link>
+          </div>
+        )}
       </div>
 
       <div
@@ -364,6 +447,14 @@ export default function ProblemWorkspacePage() {
           {submitting ? 'Running...' : 'Submit'}
         </button>
         {submitError && <p className="error">{submitError}</p>}
+
+        {courseContext && passed && (
+          <button className="btn btn-accent workspace-course-next" onClick={handleCourseNext}>
+            {courseContext.stepIndex + 1 < courseContext.totalSteps
+              ? 'Next step →'
+              : 'Finish course →'}
+          </button>
+        )}
 
         <div ref={reviewRef}>
           <ReviewComments review={reviewComments} />

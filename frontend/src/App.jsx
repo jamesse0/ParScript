@@ -5,6 +5,9 @@ import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import ProblemListPage from './pages/ProblemListPage'
 import ProblemWorkspacePage from './pages/ProblemWorkspacePage'
+import CourseListPage from './pages/CourseListPage'
+import CourseRunnerPage from './pages/CourseRunnerPage'
+import CourseLeaderboardPage from './pages/CourseLeaderboardPage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import GlobalLeaderboardPage from './pages/GlobalLeaderboardPage'
 import ProfilePage from './pages/ProfilePage'
@@ -21,6 +24,9 @@ export default function App() {
           <NavLink to="/problems" className={({ isActive }) => (isActive ? 'active' : undefined)}>
             Problems
           </NavLink>
+          <NavLink to="/courses" className={({ isActive }) => (isActive ? 'active' : undefined)}>
+            Courses
+          </NavLink>
           <NavLink to="/leaderboard" className={({ isActive }) => (isActive ? 'active' : undefined)}>
             Leaderboard
           </NavLink>
@@ -34,6 +40,18 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/problems" element={<ProblemListPage />} />
+          <Route path="/courses" element={<CourseListPage />} />
+          <Route path="/courses/:courseSlug/leaderboard" element={<CourseLeaderboardPage />} />
+          <Route
+            path="/courses/:courseSlug"
+            element={
+              <RequireAuth>
+                <OnboardingGate>
+                  <CourseRunnerPage />
+                </OnboardingGate>
+              </RequireAuth>
+            }
+          />
           <Route path="/leaderboard" element={<GlobalLeaderboardPage />} />
           <Route path="/problems/:problemId/leaderboard" element={<LeaderboardPage />} />
           <Route

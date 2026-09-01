@@ -309,5 +309,101 @@
         "starter_code": "class File:\n    def __init__(self, name: str, size: int):\n        self.name = name\n        self.size = size\n\n    def total_size(self) -> int:\n        # your code here\n        pass\n\n\nclass Folder:\n    def __init__(self, name: str):\n        self.name = name\n        # your code here\n\n    def add_child(self, child) -> None:\n        # your code here\n        pass\n\n    def remove_child(self, name: str) -> None:\n        # your code here\n        pass\n\n    def total_size(self) -> int:\n        # your code here\n        pass\n",
         "test_kind": "pytest",
         "test_file": "system_design_tests/filesystem-tree-size-aggregation.py"
+    },
+    {
+        "slug": "booking-1-basics",
+        "title": "Booking Service · Step 1: Reservations",
+        "description": "Build a single-file class `Calendar` that tracks time-slot reservations per room. Times are integers; treat each slot as the half-open interval `[start, end)`.\n\nCourse-wide convention: when a method can't find the thing it's asked to act on, raise `KeyError`.\n\n- `book(room, start, end)` — reserve the slot, or reject it if it clashes with an existing booking for that room.\n- `is_free(room, start, end)` — whether that room has nothing overlapping `[start, end)`.\n\nRooms are independent. Later steps extend this same class, so keep the internals clean.",
+        "difficulty": "system_design",
+        "par_tokens": 1500,
+        "course_only": true,
+        "function_signature": "class Calendar:\n    def book(self, room: str, start: int, end: int) -> None: ...\n    def is_free(self, room: str, start: int, end: int) -> bool: ...",
+        "starter_code": "class Calendar:\n    def __init__(self):\n        # your code here\n        pass\n\n    def book(self, room, start, end):\n        # your code here\n        pass\n\n    def is_free(self, room, start, end):\n        # your code here\n        pass\n",
+        "test_kind": "pytest",
+        "test_file": "course_tests/booking-1-basics.py"
+    },
+    {
+        "slug": "booking-2-cancel",
+        "title": "Booking Service · Step 2: Cancel & List",
+        "description": "Extend your `Calendar` with two methods; `book` / `is_free` keep working as before.\n\n- `cancel(room, start)` — drop the booking for that room that starts at `start`.\n- `bookings(room)` — the room's bookings as `(start, end)` tuples, earliest first.",
+        "difficulty": "system_design",
+        "par_tokens": 2200,
+        "course_only": true,
+        "function_signature": "class Calendar:\n    def book(self, room, start, end) -> None: ...\n    def is_free(self, room, start, end) -> bool: ...\n    def cancel(self, room, start) -> None: ...\n    def bookings(self, room) -> list[tuple[int, int]]: ...",
+        "starter_code": "class Calendar:\n    def __init__(self):\n        # carry your step 1 code here, then add cancel() and bookings()\n        pass\n",
+        "test_kind": "pytest",
+        "test_file": "course_tests/booking-2-cancel.py"
+    },
+    {
+        "slug": "booking-3-recurring",
+        "title": "Booking Service · Step 3: Recurring",
+        "description": "Extend your `Calendar` with recurring reservations; steps 1–2 keep working.\n\n- `book_recurring(room, start, end, count, period)` — book `count` occurrences of the slot, each shifted `period` later than the previous one. All-or-nothing: if any occurrence clashes, book none.",
+        "difficulty": "system_design",
+        "par_tokens": 3200,
+        "course_only": true,
+        "function_signature": "class Calendar:\n    # ... book / is_free / cancel / bookings from steps 1-2 ...\n    def book_recurring(self, room, start, end, count, period) -> None: ...",
+        "starter_code": "class Calendar:\n    def __init__(self):\n        # carry your step 2 code here, then add book_recurring()\n        pass\n",
+        "test_kind": "pytest",
+        "test_file": "course_tests/booking-3-recurring.py"
+    },
+    {
+        "slug": "booking-4-waitlist",
+        "title": "Booking Service · Step 4: Waitlist",
+        "description": "Extend your `Calendar` with a waitlist; steps 1–3 keep working.\n\n- `waitlist(room, start, end)` — register interest in a slot without booking it.\n- `cancel(room, start)` — after freeing the slot, promote the earliest waitlisted request for that room that now fits: book it, drop it from the waitlist, and return its `(start, end)`. Return `None` if none fits.",
+        "difficulty": "system_design",
+        "par_tokens": 4000,
+        "course_only": true,
+        "function_signature": "class Calendar:\n    # ... book / is_free / cancel / bookings / book_recurring from steps 1-3 ...\n    def waitlist(self, room, start, end) -> None: ...\n    def cancel(self, room, start) -> tuple[int, int] | None: ...",
+        "starter_code": "class Calendar:\n    def __init__(self):\n        # carry your step 3 code here, then add waitlist() and promotion in cancel()\n        pass\n",
+        "test_kind": "pytest",
+        "test_file": "course_tests/booking-4-waitlist.py"
+    },
+    {
+        "slug": "notif-dispatch-1-core",
+        "title": "Notification Dispatcher · Step 1: Core",
+        "description": "Build `Notification`, `User`, and `Dispatcher` in one file.\n\n`Dispatcher.send(user, notification)` delivers across the user's enabled channels and returns a list of `{\"channel\", \"message\"}` dicts, one per channel, in the user's channel order.\n\n- `Notification(message, priority=\"normal\")` — priority is `\"normal\"` or `\"urgent\"`.\n- `User(name, channels, dnd=False)` — `channels` is an ordered list.\n- Formatting: `email` sends the message as-is; `sms` truncates it to 20 characters; `push` prefixes it with `\"🔔 \"`.\n- An unknown channel name raises `ValueError`.\n- Do-not-disturb: when `dnd` is on, `\"normal\"` notifications are suppressed entirely (return `[]`), `\"urgent\"` ones still go through.\n\n`Dispatcher` keeps no state between calls. Later steps extend this same code — nothing dictates how you structure the per-channel logic, and that choice is what they test.",
+        "difficulty": "system_design",
+        "par_tokens": 3000,
+        "course_only": true,
+        "function_signature": "class Notification:\n    def __init__(self, message, priority=\"normal\"): ...\n\nclass User:\n    def __init__(self, name, channels, dnd=False): ...\n\nclass Dispatcher:\n    def send(self, user, notification) -> list[dict]: ...  # [{\"channel\", \"message\"}], in channel order",
+        "starter_code": "class Notification:\n    def __init__(self, message, priority=\"normal\"):\n        # your code here\n        ...\n\n\nclass User:\n    def __init__(self, name, channels, dnd=False):\n        # your code here\n        ...\n\n\nclass Dispatcher:\n    def send(self, user, notification):\n        # your code here\n        ...\n",
+        "test_kind": "pytest",
+        "test_file": "course_tests/notif-dispatch-1-core.py"
+    },
+    {
+        "slug": "notif-dispatch-2-slack",
+        "title": "Notification Dispatcher · Step 2: Slack",
+        "description": "Add `\"slack\"` as a fourth channel in the same `Dispatcher.send()` — no new public methods. Slack formats the message as `*message*`.\n\nEverything from step 1 keeps working unchanged.",
+        "difficulty": "system_design",
+        "par_tokens": 2800,
+        "course_only": true,
+        "function_signature": "class Dispatcher:\n    def send(self, user, notification) -> list[dict]: ...  # now also handles \"slack\" -> \"*message*\"",
+        "starter_code": "class Dispatcher:\n    def __init__(self):\n        # carry your step 1 code here, then add the slack channel\n        pass\n",
+        "test_kind": "pytest",
+        "test_file": "course_tests/notif-dispatch-2-slack.py"
+    },
+    {
+        "slug": "notif-dispatch-3-category",
+        "title": "Notification Dispatcher · Step 3: Categories",
+        "description": "`Notification` gains an optional `category` label. When set, each channel prefixes it in its own style; when not, formatting is unchanged.\n\nWith `category=\"Deploys\"` and message `m`:\n- email → `\"[Deploys] \" + m`\n- push → `\"🔔 [Deploys] \" + m`\n- slack → `\"*[Deploys]* \" + m`\n- sms → `\"Deploys: \" + m`, then the 20-char cap applies to the whole string.",
+        "difficulty": "system_design",
+        "par_tokens": 5500,
+        "course_only": true,
+        "function_signature": "class Notification:\n    def __init__(self, message, priority=\"normal\", category=None): ...\n\nclass Dispatcher:\n    def send(self, user, notification) -> list[dict]: ...  # a set category prefixes every channel",
+        "starter_code": "class Dispatcher:\n    def __init__(self):\n        # carry your step 2 code here, then add category prefixing\n        pass\n",
+        "test_kind": "pytest",
+        "test_file": "course_tests/notif-dispatch-3-category.py"
+    },
+    {
+        "slug": "notif-dispatch-4-digest",
+        "title": "Notification Dispatcher · Step 4: Digest",
+        "description": "Add opt-in digest mode; non-digest users behave exactly as before.\n\n- `User(..., digest_size=N)` — `send()` queues the notification and returns `[]` instead of delivering. Once `N` are queued, they flush as one combined message per channel (the queued messages joined with newlines).\n- `flush(user)` — force-deliver a partial batch now.",
+        "difficulty": "system_design",
+        "par_tokens": 7600,
+        "course_only": true,
+        "function_signature": "class User:\n    def __init__(self, name, channels, dnd=False, digest_size=None): ...\n\nclass Dispatcher:\n    def send(self, user, notification) -> list[dict]: ...  # digest users: queue, return [] until N queued\n    def flush(self, user) -> list[dict]: ...",
+        "starter_code": "class Dispatcher:\n    def __init__(self):\n        # carry your step 3 code here, then add digest queueing + flush()\n        pass\n",
+        "test_kind": "pytest",
+        "test_file": "course_tests/notif-dispatch-4-digest.py"
     }
 ]

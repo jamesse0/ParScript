@@ -218,6 +218,51 @@ def build_rows(users: list[tuple[str, str]], problems: list[dict],
     return rows
 
 
+def seed_course_completions(sb, users: list[tuple[str, str]]) -> int:
+    """One `course_completions` row for 6-8 demo users per course, with totals
+    clustered around the course's summed par, so the course leaderboard isn't
+    empty for screenshots. No-op if no courses are seeded yet."""
+    demo_ids = [uid for uid, _ in users]
+    courses = (
+        sb.table("courses")
+        .select("id, slug, course_problems(problems(par_tokens))")
+        .order("id")
+        .execute()
+        .data
+        or []
+    )
+    if not courses:
+        print("no courses seeded -- skipping course_completions")
+        return 0
+
+    sb.table("course_completions").delete().in_("user_id", demo_ids).execute()
+
+    rows: list[dict] = []
+    for course in courses:
+        par = 0
+        for cp in course.get("course_problems") or []:
+            prob = cp.get("problems")
+            if isinstance(prob, list):
+                prob = prob[0] if prob else {}
+            par += (prob or {}).get("par_tokens") or 0
+        par = par or 6000
+        k = min(len(users), random.randint(6, 8))
+        for uid, _ in random.sample(users, k):
+            factor = min(1.8, max(0.55, random.gauss(1.0, 0.2)))
+            total = max(500, round(par * factor))
+            inp, out = _split_tokens(total)
+            day = random.uniform(0, 18)
+            rows.append({
+                "user_id": uid, "course_id": course["id"],
+                "total_input_tokens": inp, "total_output_tokens": out,
+                "elapsed_seconds": _elapsed_for(out), "completed_at": _iso(day),
+            })
+    for start in range(0, len(rows), 200):
+        sb.table("course_completions").insert(rows[start:start + 200]).execute()
+    print(f"inserted {len(rows)} course completion(s) across {len(courses)} course(s)")
+    return len(rows)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--users", type=int, default=10)
@@ -262,6 +307,9 @@ def main() -> int:
     # phase 2: the submissions
     for start in range(0, len(rows), 200):
         sb.table("submissions").insert(rows[start:start + 200]).execute()
+
+    # phase 3: course leaderboard rows (independent of the per-problem submissions)
+    seed_course_completions(sb, users)
 
     # summary
     by_problem: dict[int, list[int]] = {}

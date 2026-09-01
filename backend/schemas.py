@@ -159,6 +159,50 @@ class MetricsResponse(BaseModel):
     history: list[MetricsHistoryRow]
 
 
+# --- courses (maintainability sequences) ---------------------------
+
+
+class CourseStep(BaseModel):
+    position: int
+    problem_id: int
+    title: str
+    par_tokens: int
+
+
+class CourseSummary(BaseModel):
+    slug: str
+    title: str
+    description: str
+    step_count: int
+    par_tokens: int  # summed par across the sequence
+
+
+class CourseDetail(CourseSummary):
+    steps: list[CourseStep]
+
+
+class CourseCompleteRequest(BaseModel):
+    # the winning (passing) submission id for each step of the run
+    submission_ids: list[str]
+
+
+class CourseCompletionResponse(BaseModel):
+    total_input_tokens: int
+    total_output_tokens: int
+    elapsed_seconds: float
+    par_tokens: int  # summed par for the course
+    completed_at: str
+
+
+class CourseLeaderboardRow(BaseModel):
+    username: str
+    user_id: str
+    total_input_tokens: int
+    total_output_tokens: int
+    elapsed_seconds: float
+    completed_at: str
+
+
 # --- profiles / onboarding (DESIGN.md §4, §7) -----------------------
 
 

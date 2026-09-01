@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
-from routes import chat, leaderboard, metrics, problems, profile, review, submit
+from routes import chat, courses, leaderboard, metrics, problems, profile, review, submit
 
 app = FastAPI(title="ParScript API")
 
@@ -22,6 +22,7 @@ app.add_middleware(
 )
 
 app.include_router(problems.router)
+app.include_router(courses.router)
 app.include_router(leaderboard.router)
 app.include_router(metrics.router)
 app.include_router(profile.router)

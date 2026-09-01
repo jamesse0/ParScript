@@ -674,6 +674,85 @@ button {
 .workspace-leaderboard { padding: 1.25rem 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
 .workspace-leaderboard h2 { margin-top: 0; font-size: 1.05rem; }
 
+/* ---------- courses ---------- */
+.course-card-desc {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+/* Plain block wrapper: keep .workspace-page behaving exactly as it does when
+   rendered straight under .app-main (a flex parent here would suppress its
+   auto-margin centering and collapse the grid's 1fr column). */
+.course-runner { display: block; }
+.course-runner-bar {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 1rem 1rem 0;
+  background: transparent;
+}
+.course-runner-title { font-weight: 700; }
+.course-runner-progress { font-size: 0.85rem; color: var(--text-muted); margin-left: auto; }
+.course-runner-finishing { font-size: 0.85rem; color: var(--accent); font-weight: 600; }
+.course-runner-restart { font-size: 0.8rem; padding: 0.3rem 0.75rem; align-self: center; }
+
+.workspace-course-progress {
+  padding: 1.25rem 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.workspace-course-progress h2 { margin-top: 0; font-size: 1.05rem; }
+.course-step-indicator { margin: 0.25rem 0 0.75rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+.course-step-list { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.3rem; }
+.course-step-list li { font-size: 0.85rem; color: var(--text-muted); }
+.course-step-list li.done { color: var(--text); text-decoration: line-through; }
+.course-step-list li.current { color: var(--accent); font-weight: 700; }
+.course-running-total { margin: 0.85rem 0 0; font-weight: 700; }
+.workspace-course-next { margin-top: 0.85rem; }
+
+.course-score { padding: 2rem 1.75rem; max-width: 900px; margin: 0 auto; }
+.course-score h1 { margin: 0 0 1.25rem; font-size: 1.6rem; }
+.course-score-headline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 1.5rem;
+}
+.course-score-total { font-size: 2.4rem; font-weight: 800; line-height: 1; }
+.course-score-sub { font-size: 0.85rem; color: var(--text-muted); }
+.course-score-ratio { margin-top: 0.5rem; font-weight: 700; font-size: 0.95rem; }
+.course-score-ratio.under { color: #15803d; }
+.course-score-ratio.over { color: #b91c1c; }
+
+.course-score-breakdown { width: 100%; border-collapse: collapse; margin-bottom: 1.75rem; }
+.course-score-breakdown th, .course-score-breakdown td {
+  text-align: right;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+.course-score-breakdown th:first-child, .course-score-breakdown td:first-child { text-align: left; }
+.course-score-breakdown th { color: var(--text-muted); font-weight: 600; }
+
+.course-score-leaderboard-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.course-score-leaderboard-head h2 { font-size: 1.05rem; }
+.course-score-actions { display: flex; gap: 0.75rem; margin-top: 1.75rem; }
+
 /* ---------- chat ---------- */
 .chat-panel { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; background: var(--surface); }
 .chat-messages { max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; }

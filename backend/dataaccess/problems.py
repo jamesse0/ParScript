@@ -21,11 +21,24 @@ _GRADING_COLS = "id, test_kind, test_cases, test_file, function_signature"
 
 
 def list_problems(difficulty: str | None = None) -> list[dict]:
-    """Problem summaries, oldest first, optionally filtered by difficulty."""
-    query = get_supabase().table("problems").select(_SUMMARY_COLS).order("id")
-    if difficulty:
-        query = query.eq("difficulty", difficulty)
-    return query.execute().data or []
+    """Problem summaries, oldest first, optionally filtered by difficulty.
+    Course-only problems are excluded -- they're reached through their course."""
+
+    def _build(exclude_course_only: bool):
+        q = get_supabase().table("problems").select(_SUMMARY_COLS).order("id")
+        if exclude_course_only:
+            q = q.eq("course_only", False)
+        if difficulty:
+            q = q.eq("difficulty", difficulty)
+        return q
+
+    try:
+        return _build(True).execute().data or []
+    except Exception as exc:  # noqa: BLE001
+        # Tolerate a DB that hasn't run 0005_courses.sql yet. Remove once applied.
+        if "course_only" not in str(exc):
+            raise
+        return _build(False).execute().data or []
 
 
 def get_problem(problem_id: int | str) -> dict | None:

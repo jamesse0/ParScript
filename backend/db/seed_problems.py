@@ -38,8 +38,9 @@ BASE_REQUIRED = {
     "function_signature",
     "starter_code",
 }
-# Allowed but grading-kind-dependent (see _validate).
-OPTIONAL_ALLOWED = {"test_kind", "test_cases", "test_file"}
+# Allowed but grading-kind-dependent (see _validate). `course_only` hides a
+# problem from GET /problems -- it's only reachable through its course.
+OPTIONAL_ALLOWED = {"test_kind", "test_cases", "test_file", "course_only"}
 ALLOWED_DIFFICULTY = {"easy", "medium", "hard", "system_design"}
 ALLOWED_TEST_KIND = {"io_pairs", "pytest"}
 
@@ -137,6 +138,7 @@ def main() -> int:
     for problem in problems:
         problem.setdefault("test_kind", "io_pairs")
         problem.setdefault("test_cases", None)
+        problem.setdefault("course_only", False)
         if problem["test_kind"] == "pytest":
             problem["test_file"] = (base_dir / problem["test_file"]).resolve().read_text()
         problem.setdefault("test_file", None)

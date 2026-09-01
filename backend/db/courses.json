@@ -1,0 +1,24 @@
+[
+    {
+        "slug": "grow-a-booking-service",
+        "title": "Grow a Booking Service",
+        "description": "Create a room-booking `Calendar`, then extend it step by step — cancellation, recurring bookings, a waitlist.",
+        "problems": [
+            "booking-1-basics",
+            "booking-2-cancel",
+            "booking-3-recurring",
+            "booking-4-waitlist"
+        ]
+    },
+    {
+        "slug": "grow-a-notification-dispatcher",
+        "title": "Grow a Notification Dispatcher",
+        "description": "Build a multi-channel notification `Dispatcher`, then extend it step by step — a Slack channel, notification categories, batched digests.",
+        "problems": [
+            "notif-dispatch-1-core",
+            "notif-dispatch-2-slack",
+            "notif-dispatch-3-category",
+            "notif-dispatch-4-digest"
+        ]
+    }
+]
