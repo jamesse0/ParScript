@@ -4,6 +4,8 @@ DRAFT. Confirm exact field names/shapes at the 15-minute sync (DESIGN.md §8)
 before splitting off; all three backend areas and the frontend build against this.
 """
 
+from typing import Literal
+
 from pydantic import BaseModel
 
 # --- shared -----------------------------------------------------------------
@@ -50,6 +52,9 @@ class SubmitRequest(BaseModel):
     elapsed_seconds: float
     # the chat attempt this code came from, if the user didn't hand-write it
     attempt_id: str | None = None
+    # "prompt" = AI-assisted run; "manual" = hand-written, ranked by time,
+    # excluded from /me/metrics.
+    mode: Literal["prompt", "manual"] = "prompt"
 
 
 class SubmitResponse(BaseModel):

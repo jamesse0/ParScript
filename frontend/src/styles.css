@@ -119,6 +119,18 @@ button {
   color: #ffffff;
 }
 
+/* Workspace / leaderboard mode toggle: same pills, no trailing margin (the
+   sidebar and leaderboard page space their children with gap / flow). */
+.mode-toggle { margin-bottom: 0; }
+.mode-toggle button { text-transform: none; }
+
+.leaderboard-more {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
 .problem-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -305,7 +317,9 @@ button {
   padding: 1rem;
   display: block;
   resize: none;
-  overflow: hidden;
+  overflow-y: hidden; /* height is driven by JS auto-grow */
+  overflow-x: auto;   /* long lines scroll (wrap="off") instead of clipping */
+  tab-size: 4;
 }
 .code-editor:focus { outline: none; }
 

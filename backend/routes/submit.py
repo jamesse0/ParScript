@@ -29,9 +29,14 @@ async def submit(body: SubmitRequest, user=Depends(require_profile)) -> SubmitRe
     if problem is None:
         raise HTTPException(status_code=404, detail="problem not found")
 
+    # Normalize indentation: the manual editor inserts real tabs, but seeded
+    # starter code uses 4 spaces -- mixing the two is a Python 3 TabError.
+    # Expand tabs to 4-col stops so what we run (and store) is consistent.
+    code = body.code.expandtabs(4)
+
     try:
         passed, test_results = run_submission(
-            body.code, problem["test_cases"], problem["function_signature"]
+            code, problem["test_cases"], problem["function_signature"]
         )
     except SandboxError as e:
         # Infra-level failure (timeout, crashed container) -- still recorded
@@ -42,13 +47,14 @@ async def submit(body: SubmitRequest, user=Depends(require_profile)) -> SubmitRe
     row = insert_submission(
         user_id=user["id"],
         problem_id=body.problem_id,
-        code=body.code,
+        code=code,
         test_results=test_results,
         passed=passed,
         attempt_id=body.attempt_id,
         input_tokens=body.input_tokens,
         output_tokens=body.output_tokens,
         elapsed_seconds=body.elapsed_seconds,
+        mode=body.mode,
     )
 
     return SubmitResponse(

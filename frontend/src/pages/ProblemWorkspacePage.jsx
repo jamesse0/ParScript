@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { getProblem } from '../api/problems'
 import { postChat } from '../api/chat'
 import { postSubmit } from '../api/submit'
@@ -16,6 +16,7 @@ import TestResultsList from '../components/TestResultsList'
 import ReviewComments from '../components/ReviewComments'
 import LeaderboardTable from '../components/LeaderboardTable'
 import Markdown from '../components/Markdown'
+import ModeToggle from '../components/ModeToggle'
 
 export default function ProblemWorkspacePage() {
   const { problemId } = useParams()
@@ -23,6 +24,9 @@ export default function ProblemWorkspacePage() {
   const [error, setError] = useState(null)
 
   const [saved] = useState(() => loadWorkspaceState(problemId))
+
+  // 'prompt' = chat with the AI; 'manual' = hand-write the solution, ranked by time.
+  const [mode, setMode] = useState(saved?.mode ?? 'prompt')
 
   const [messages, setMessages] = useState(saved?.messages ?? [])
   const [code, setCode] = useState(saved?.code ?? '')
@@ -62,8 +66,15 @@ export default function ProblemWorkspacePage() {
       .catch((e) => setError(e.message))
   }, [problemId, saved])
 
+  // Manual mode: the clock runs from the moment the page is ready, not from a
+  // first chat message. start() is idempotent, so re-running is harmless.
+  useEffect(() => {
+    if (problem && mode === 'manual' && !passed) start()
+  }, [problem, mode, passed, start])
+
   useEffect(() => {
     saveWorkspaceState(problemId, {
+      mode,
       messages,
       code,
       lastAttemptId,
@@ -77,6 +88,7 @@ export default function ProblemWorkspacePage() {
     })
   }, [
     problemId,
+    mode,
     messages,
     code,
     lastAttemptId,
@@ -90,7 +102,8 @@ export default function ProblemWorkspacePage() {
   ])
 
   const refreshLeaderboard = () => {
-    getLeaderboard(problemId)
+    // The sidebar widget always shows the AI (prompt) leaderboard.
+    getLeaderboard(problemId, 'prompt')
       .then((rows) => {
         setLeaderboard(rows)
         setLeaderboardError(null)
@@ -107,6 +120,32 @@ export default function ProblemWorkspacePage() {
       reviewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
   }, [reviewComments])
+
+  const resetSession = () => {
+    attemptRef.current += 1
+    clearWorkspaceState(problemId)
+    setMessages([])
+    setCode(problem.starter_code)
+    setLastAttemptId(null)
+    setSending(false)
+    setSubmitting(false)
+    setTestResults(null)
+    setPassed(false)
+    setReviewComments(null)
+    setSubmitError(null)
+    resetTokens()
+    resetTimer()
+  }
+
+  const handleReplay = () => {
+    resetSession()
+  }
+
+  const handleModeChange = (next) => {
+    if (next === mode) return
+    resetSession()
+    setMode(next)
+  }
 
   const handleSend = async (content) => {
     const attempt = attemptRef.current
@@ -140,7 +179,8 @@ export default function ProblemWorkspacePage() {
         inputTokens,
         outputTokens,
         elapsedSeconds: currentElapsedSeconds(),
-        attemptId: lastAttemptId,
+        attemptId: mode === 'manual' ? null : lastAttemptId,
+        mode,
       })
       if (attempt !== attemptRef.current) return
       setTestResults(res.test_results)
@@ -160,28 +200,16 @@ export default function ProblemWorkspacePage() {
     }
   }
 
-  const handleReplay = () => {
-    attemptRef.current += 1
-    clearWorkspaceState(problemId)
-    setMessages([])
-    setCode(problem.starter_code)
-    setLastAttemptId(null)
-    setSending(false)
-    setSubmitting(false)
-    setTestResults(null)
-    setPassed(false)
-    setReviewComments(null)
-    setSubmitError(null)
-    resetTokens()
-    resetTimer()
-  }
-
   if (error) return <p className="error">{error}</p>
   if (!problem) return <p>Loading...</p>
+
+  const isManual = mode === 'manual'
 
   return (
     <div className="workspace-page">
       <div className="workspace-sidebar">
+        <ModeToggle value={mode} onChange={handleModeChange} />
+
         <div className="workspace-description">
           <div className="workspace-title-row">
             <h1>{problem.title}</h1>
@@ -198,17 +226,24 @@ export default function ProblemWorkspacePage() {
           <h2>Leaderboard</h2>
           {leaderboardError && <p className="error">{leaderboardError}</p>}
           {!leaderboard && !leaderboardError && <p>Loading...</p>}
-          {leaderboard && (leaderboard.length ? <LeaderboardTable rows={leaderboard} /> : <p>No submissions yet.</p>)}
+          {leaderboard && (leaderboard.length ? <LeaderboardTable rows={leaderboard} mode="prompt" /> : <p>No submissions yet.</p>)}
+          <Link className="leaderboard-more" to={`/problems/${problemId}/leaderboard`}>
+            Full leaderboard &rarr;
+          </Link>
         </div>
       </div>
 
       <div className="workspace-main">
         <div className="workspace-stats">
-          <TokenCounter inputTokens={inputTokens} outputTokens={outputTokens} parTokens={problem.par_tokens} />
+          {!isManual && (
+            <TokenCounter inputTokens={inputTokens} outputTokens={outputTokens} parTokens={problem.par_tokens} />
+          )}
           <Timer elapsedSeconds={elapsedSeconds} />
         </div>
 
-        <ChatPanel messages={messages} onSend={handleSend} sending={sending} resetSignal={attemptRef.current} />
+        {!isManual && (
+          <ChatPanel messages={messages} onSend={handleSend} sending={sending} resetSignal={attemptRef.current} />
+        )}
         <CodePanel code={code} onChange={setCode} />
 
         <button className="btn btn-accent" onClick={handleSubmit} disabled={submitting}>
