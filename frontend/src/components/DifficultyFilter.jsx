@@ -1,5 +1,6 @@
+import { difficultyLabel } from '../lib/difficulty'
+
 const OPTIONS = ['all', 'easy', 'medium', 'hard', 'system_design']
-const LABELS = { system_design: 'system design' }
 
 export default function DifficultyFilter({ value, onChange }) {
   return (
@@ -10,7 +11,7 @@ export default function DifficultyFilter({ value, onChange }) {
           className={value === opt ? 'active' : ''}
           onClick={() => onChange(opt)}
         >
-          {LABELS[opt] ?? opt}
+          {opt === 'all' ? 'all' : difficultyLabel(opt)}
         </button>
       ))}
     </div>

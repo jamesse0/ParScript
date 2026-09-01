@@ -17,6 +17,7 @@ import ReviewComments from '../components/ReviewComments'
 import LeaderboardTable from '../components/LeaderboardTable'
 import ModeToggle from '../components/ModeToggle'
 import ProblemDescription from '../components/ProblemDescription'
+import { difficultyLabel } from '../lib/difficulty'
 
 const SIDEBAR_WIDTH_KEY = 'parscript:sidebarWidth'
 const MIN_SIDEBAR_WIDTH = 280
@@ -283,7 +284,7 @@ export default function ProblemWorkspacePage() {
               Replay Problem
             </button>
           </div>
-          <span className={`tag tag-${problem.difficulty}`}>{problem.difficulty}</span>
+          <span className={`tag tag-${problem.difficulty}`}>{difficultyLabel(problem.difficulty)}</span>
           <ProblemDescription text={problem.description} />
           <pre>{problem.function_signature}</pre>
           {problem.test_kind === 'pytest' && (
