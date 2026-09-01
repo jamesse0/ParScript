@@ -4,6 +4,7 @@ import { useAuth, signInWithGithub } from '../lib/AuthProvider'
 import { getMe } from '../api/profile'
 import { getMetrics } from '../api/metrics'
 import { getGlobalLeaderboard } from '../api/leaderboard'
+import logo from '../assets/parprompt-logo.png'
 
 const SLIDES = [
   {
@@ -139,16 +140,38 @@ function LeaderboardTile() {
 export default function HomePage() {
   return (
     <div className="home-page">
-      <div className="home-hero">
-        <Carousel />
-        <div className="home-side-tiles">
-          <AccountTile />
-          <LeaderboardTile />
+      <section className="home-splash">
+        <div className="home-splash-logo-badge">
+          <img src={logo} alt="Par Prompt" className="home-splash-logo" />
         </div>
-      </div>
-      <Link to="/problems" className="home-cta">
-        View Courses
-      </Link>
+        <div className="home-splash-copy">
+          <p className="home-splash-slogan">Efficiency is the new green.</p>
+          <p className="home-splash-vision">
+            Treating efficient prompting as practice rewards fewer tokens, faster answers, and a
+            smaller footprint behind every idea.
+          </p>
+        </div>
+
+        <div className="home-scroll-cue" aria-hidden="true">
+          <span>Scroll</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+      </section>
+
+      <section className="home-hero-section">
+        <div className="home-hero">
+          <Carousel />
+          <div className="home-side-tiles">
+            <AccountTile />
+            <LeaderboardTile />
+          </div>
+        </div>
+        <Link to="/problems" className="home-cta">
+          View Courses
+        </Link>
+      </section>
     </div>
   )
 }
