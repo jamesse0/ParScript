@@ -39,7 +39,14 @@ export default function ProblemWorkspacePage() {
   const [leaderboardError, setLeaderboardError] = useState(null)
 
   const { inputTokens, outputTokens, addUsage, reset: resetTokens } = useTokenCounter(saved?.inputTokens, saved?.outputTokens)
-  const { elapsedSeconds, start, currentElapsedSeconds, startedAt, reset: resetTimer } = useElapsedTimer(saved?.startedAt)
+  const {
+    elapsedSeconds,
+    start,
+    stop: stopTimer,
+    currentElapsedSeconds,
+    startedAt,
+    reset: resetTimer,
+  } = useElapsedTimer(saved?.startedAt, !saved?.passed, saved?.elapsedSeconds)
 
   useEffect(() => {
     getProblem(problemId)
@@ -64,6 +71,7 @@ export default function ProblemWorkspacePage() {
       inputTokens,
       outputTokens,
       startedAt,
+      elapsedSeconds,
     })
   }, [
     problemId,
@@ -77,6 +85,7 @@ export default function ProblemWorkspacePage() {
     inputTokens,
     outputTokens,
     startedAt,
+    elapsedSeconds,
   ])
 
   const refreshLeaderboard = () => {
@@ -131,6 +140,7 @@ export default function ProblemWorkspacePage() {
       setTestResults(res.test_results)
       setPassed(res.passed)
       if (res.passed) {
+        stopTimer()
         const reviewRes = await postReview(problem.id, code)
         setReviewComments(reviewRes)
         refreshLeaderboard()
