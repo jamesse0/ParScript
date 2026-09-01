@@ -1,7 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-export default function ChatPanel({ messages, onSend, sending }) {
+export default function ChatPanel({ messages, onSend, sending, resetSignal }) {
   const [draft, setDraft] = useState('')
+
+  useEffect(() => {
+    setDraft('')
+  }, [resetSignal])
 
   const send = (e) => {
     e.preventDefault()

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getProblem } from '../api/problems'
 import { postChat } from '../api/chat'
@@ -37,6 +37,8 @@ export default function ProblemWorkspacePage() {
 
   const [leaderboard, setLeaderboard] = useState(null)
   const [leaderboardError, setLeaderboardError] = useState(null)
+
+  const attemptRef = useRef(0)
 
   const { inputTokens, outputTokens, addUsage, reset: resetTokens } = useTokenCounter(saved?.inputTokens, saved?.outputTokens)
   const {
@@ -100,24 +102,28 @@ export default function ProblemWorkspacePage() {
   }, [problemId])
 
   const handleSend = async (content) => {
+    const attempt = attemptRef.current
     start()
     const newMessages = [...messages, { role: 'user', content }]
     setMessages(newMessages)
     setSending(true)
     try {
       const res = await postChat(problem.id, newMessages)
+      if (attempt !== attemptRef.current) return
       setMessages([...newMessages, { role: 'assistant', content: res.reply }])
       setCode(res.code)
       setLastAttemptId(res.attempt_id)
       addUsage(res.input_tokens, res.output_tokens)
     } catch (e) {
+      if (attempt !== attemptRef.current) return
       setError(e.message)
     } finally {
-      setSending(false)
+      if (attempt === attemptRef.current) setSending(false)
     }
   }
 
   const handleSubmit = async () => {
+    const attempt = attemptRef.current
     setSubmitting(true)
     setSubmitError(null)
     try {
@@ -129,26 +135,32 @@ export default function ProblemWorkspacePage() {
         elapsedSeconds: currentElapsedSeconds(),
         attemptId: lastAttemptId,
       })
+      if (attempt !== attemptRef.current) return
       setTestResults(res.test_results)
       setPassed(res.passed)
       if (res.passed) {
         stopTimer()
         const reviewRes = await postReview(problem.id, code)
+        if (attempt !== attemptRef.current) return
         setReviewComments(reviewRes)
         refreshLeaderboard()
       }
     } catch (e) {
+      if (attempt !== attemptRef.current) return
       setSubmitError(e.message)
     } finally {
-      setSubmitting(false)
+      if (attempt === attemptRef.current) setSubmitting(false)
     }
   }
 
   const handleReplay = () => {
+    attemptRef.current += 1
     clearWorkspaceState(problemId)
     setMessages([])
     setCode(problem.starter_code)
     setLastAttemptId(null)
+    setSending(false)
+    setSubmitting(false)
     setTestResults(null)
     setPassed(false)
     setReviewComments(null)
@@ -166,11 +178,9 @@ export default function ProblemWorkspacePage() {
         <div className="workspace-description">
           <div className="workspace-title-row">
             <h1>{problem.title}</h1>
-            {testResults && (
-              <button className="btn btn-outline" onClick={handleReplay}>
-                Replay Problem
-              </button>
-            )}
+            <button className="btn btn-outline" onClick={handleReplay}>
+              Replay Problem
+            </button>
           </div>
           <span className={`tag tag-${problem.difficulty}`}>{problem.difficulty}</span>
           <Markdown text={problem.description} />
@@ -191,7 +201,7 @@ export default function ProblemWorkspacePage() {
           <Timer elapsedSeconds={elapsedSeconds} />
         </div>
 
-        <ChatPanel messages={messages} onSend={handleSend} sending={sending} />
+        <ChatPanel messages={messages} onSend={handleSend} sending={sending} resetSignal={attemptRef.current} />
         <CodePanel code={code} />
 
         <button className="btn btn-accent" onClick={handleSubmit} disabled={submitting}>
