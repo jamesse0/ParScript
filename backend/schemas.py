@@ -70,7 +70,9 @@ class ReviewRequest(BaseModel):
 
 
 class ReviewResponse(BaseModel):
-    comments: str
+    time_complexity: str
+    space_complexity: str
+    comments: list[str]
 
 
 # --- GET /problems ---------------------------------------------------

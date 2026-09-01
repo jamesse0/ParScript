@@ -301,6 +301,27 @@ button {
 
 .review-comments { padding: 1rem 1.25rem; background: var(--accent-soft); border-radius: var(--radius-lg); }
 .review-comments h3 { margin-top: 0; }
+.review-complexity { display: flex; gap: 0.6rem; margin-bottom: 0.85rem; }
+.review-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+}
+.review-stat-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+.review-stat-value { font-family: "SFMono-Regular", Menlo, Consolas, monospace; font-weight: 700; color: var(--accent); }
+.review-bullets { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.review-bullets li { line-height: 1.4; }
+.review-bullets code {
+  font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  background: var(--surface-muted);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
 
 .error { color: var(--danger); }
 

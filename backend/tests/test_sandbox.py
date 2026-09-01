@@ -39,7 +39,7 @@ PROBLEMS = {
 }
 
 TWO_SUM_OK = """
-def two_sum(nums, target):
+def run_code(nums, target):
     seen = {}
     for i, n in enumerate(nums):
         if target - n in seen:
@@ -48,12 +48,12 @@ def two_sum(nums, target):
 """
 
 TWO_SUM_WRONG = """
-def two_sum(nums, target):
+def run_code(nums, target):
     return [0, 0]
 """
 
 TWO_SUM_RAISES = """
-def two_sum(nums, target):
+def run_code(nums, target):
     raise ValueError("boom")
 """
 
@@ -103,10 +103,10 @@ class TestBuildCombinedSource(unittest.TestCase):
             {"input": {"nums": [1, 2], "target": 3}, "expected_output": [0, 1]},
             {"input": {"s": "()"}, "expected_output": True},  # bool must survive
         ]
-        out = _build_combined_source(TWO_SUM_OK, "two_sum", cases)
+        out = _build_combined_source(TWO_SUM_OK, "run_code", cases)
 
-        self.assertIn("def two_sum(nums, target):", out)
-        self.assertIn("__FUNCTION_NAME__ = 'two_sum'", out)
+        self.assertIn("def run_code(nums, target):", out)
+        self.assertIn("__FUNCTION_NAME__ = 'run_code'", out)
         # embedded as a JSON string decoded at runtime, not a raw literal
         self.assertIn("__TEST_CASES__ = json.loads(", out)
         self.assertNotIn("expected_output': true", out)
@@ -155,12 +155,12 @@ class TestHarnessLocally(unittest.TestCase):
 
         self.assertFalse(result["passed"])
         self.assertEqual(result["results"], [])
-        self.assertIn("two_sum", result["error"])
+        self.assertIn("run_code", result["error"])
 
     def test_dict_input_is_passed_as_kwargs(self):
-        # valid-parentheses stores input as {"s": "..."} -> harness calls is_valid(s=...)
+        # valid-parentheses stores input as {"s": "..."} -> harness calls run_code(s=...)
         prob = PROBLEMS["valid-parentheses"]
-        code = "def is_valid(s):\n    return s.count('(') == s.count(')')\n"
+        code = "def run_code(s):\n    return s.count('(') == s.count(')')\n"
         result = run_harness_locally(code, prob["function_signature"], prob["test_cases"])
         self.assertEqual(len(result["results"]), len(prob["test_cases"]))
 

@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-5-nano"
     # Output-token ceiling per call. gpt-5-* are reasoning models: hidden
     # reasoning tokens bill as output and count against this, so leave headroom.
-    openai_max_completion_tokens: int = 6000
+    openai_max_completion_tokens: int = 15000
 
     sandbox_image: str = "parscript-sandbox"
     sandbox_timeout_seconds: int = 10

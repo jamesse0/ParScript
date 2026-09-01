@@ -1,49 +1,228 @@
 [
-  {
-    "slug": "two-sum",
-    "title": "Two Sum",
-    "description": "Given an array of integers `nums` and an integer `target`, return the indices of the two numbers that add up to `target`. Each input has exactly one solution, and you may not use the same element twice. Return the indices in ascending order.",
-    "difficulty": "easy",
-    "par_tokens": 300,
-    "function_signature": "def two_sum(nums: list[int], target: int) -> list[int]:",
-    "starter_code": "def two_sum(nums: list[int], target: int) -> list[int]:\n    # your code here\n    pass\n",
-    "test_cases": [
-      { "input": { "nums": [2, 7, 11, 15], "target": 9 }, "expected_output": [0, 1] },
-      { "input": { "nums": [3, 2, 4], "target": 6 }, "expected_output": [1, 2] },
-      { "input": { "nums": [3, 3], "target": 6 }, "expected_output": [0, 1] },
-      { "input": { "nums": [-1, -2, -3, -4, -5], "target": -8 }, "expected_output": [2, 4] }
-    ]
-  },
-  {
-    "slug": "valid-parentheses",
-    "title": "Valid Parentheses",
-    "description": "Given a string `s` containing just the characters `'('`, `')'`, `'{'`, `'}'`, `'['` and `']'`, determine if the input string is valid. A string is valid if open brackets are closed by the same type of bracket and in the correct order.",
-    "difficulty": "easy",
-    "par_tokens": 350,
-    "function_signature": "def is_valid(s: str) -> bool:",
-    "starter_code": "def is_valid(s: str) -> bool:\n    # your code here\n    pass\n",
-    "test_cases": [
-      { "input": { "s": "()" }, "expected_output": true },
-      { "input": { "s": "()[]{}" }, "expected_output": true },
-      { "input": { "s": "(]" }, "expected_output": false },
-      { "input": { "s": "([)]" }, "expected_output": false },
-      { "input": { "s": "{[]}" }, "expected_output": true },
-      { "input": { "s": "" }, "expected_output": true }
-    ]
-  },
-  {
-    "slug": "reverse-linked-list",
-    "title": "Reverse Linked List",
-    "description": "Given the `head` of a singly linked list, reverse the list and return its head. The list is represented as a plain array of node values in order; return the reversed list as an array.",
-    "difficulty": "medium",
-    "par_tokens": 450,
-    "function_signature": "def reverse_list(head: list[int]) -> list[int]:",
-    "starter_code": "def reverse_list(head: list[int]) -> list[int]:\n    # `head` is the list of node values in order; return them reversed.\n    # your code here\n    pass\n",
-    "test_cases": [
-      { "input": { "head": [1, 2, 3, 4, 5] }, "expected_output": [5, 4, 3, 2, 1] },
-      { "input": { "head": [1, 2] }, "expected_output": [2, 1] },
-      { "input": { "head": [] }, "expected_output": [] },
-      { "input": { "head": [7] }, "expected_output": [7] }
-    ]
-  }
+    {
+        "slug": "two-sum",
+        "title": "Two Sum",
+        "description": "Given an array of integers `nums` and an integer `target`, return the indices of the two numbers that add up to `target`. Each input has exactly one solution, and you may not use the same element twice. Return the indices in ascending order.",
+        "difficulty": "easy",
+        "par_tokens": 300,
+        "function_signature": "def run_code(nums: list[int], target: int) -> list[int]:",
+        "starter_code": "def run_code(nums: list[int], target: int) -> list[int]:\n    # your code here\n    pass\n",
+        "test_cases": [
+            { "input": [[2, 7, 11, 15], 9], "expected_output": [0, 1] },
+            { "input": [[3, 2, 4], 6], "expected_output": [1, 2] },
+            { "input": [[3, 3], 6], "expected_output": [0, 1] },
+            { "input": [[-1, -2, -3, -4, -5], -8], "expected_output": [2, 4] }
+        ]
+    },
+    {
+        "slug": "valid-parentheses",
+        "title": "Valid Parentheses",
+        "description": "Given a string `s` containing just the characters `'('`, `')'`, `'{'`, `'}'`, `'['` and `']'`, determine if the input string is valid. A string is valid if open brackets are closed by the same type of bracket and in the correct order.",
+        "difficulty": "easy",
+        "par_tokens": 350,
+        "function_signature": "def run_code(s: str) -> bool:",
+        "starter_code": "def run_code(s: str) -> bool:\n    # your code here\n    pass\n",
+        "test_cases": [
+            { "input": ["()"], "expected_output": true },
+            { "input": ["()[]{}"], "expected_output": true },
+            { "input": ["(]"], "expected_output": false },
+            { "input": ["([)]"], "expected_output": false },
+            { "input": ["{[]}"], "expected_output": true },
+            { "input": [""], "expected_output": true }
+        ]
+    },
+    {
+        "slug": "reverse-linked-list",
+        "title": "Reverse Linked List",
+        "description": "Given the `head` of a singly linked list, reverse the list and return its head. The list is represented as a plain array of node values in order; return the reversed list as an array.",
+        "difficulty": "medium",
+        "par_tokens": 450,
+        "function_signature": "def run_code(head: list[int]) -> list[int]:",
+        "starter_code": "def run_code(head: list[int]) -> list[int]:\n    # your code here\n    pass\n",
+        "test_cases": [
+            { "input": [[1, 2, 3, 4, 5]], "expected_output": [5, 4, 3, 2, 1] },
+            { "input": [[1, 2]], "expected_output": [2, 1] },
+            { "input": [[]], "expected_output": [] },
+            { "input": [[7]], "expected_output": [7] }
+        ]
+    },
+    {
+        "slug": "selective-run-length-encode",
+        "title": "Selective Run-Length Encoding",
+        "description": "Given a string `s`, compress it using run-length encoding, but with two special rules. First, only compress a run of the same character if it occurs 3 or more times in a row — shorter runs stay as-is. Second, runs of digit characters (0-9) are never compressed, no matter how long the run is; they are always left as raw characters. When a run IS compressed, replace it with the character followed by the run's length as a string (e.g. 'aaa' becomes 'a3'). Concatenate all pieces together with no separators. Return the resulting string.",
+        "difficulty": "easy",
+        "par_tokens": 350,
+        "function_signature": "def run_code(s: str) -> str:",
+        "starter_code": "def run_code(s: str) -> str:\n    # your code here\n    pass\n",
+        "test_cases": [
+            { "input": ["aaabbbccd"], "expected_output": "a3b3ccd" },
+            { "input": ["1112223334444"], "expected_output": "1112223334444" },
+            { "input": ["aaa111bbb22c"], "expected_output": "a3111b322c" },
+            { "input": ["aabbbaa"], "expected_output": "aab3aa" },
+            { "input": [""], "expected_output": "" }
+        ]
+    },
+    {
+        "slug": "fair-meeting-scheduler",
+        "title": "Fair Meeting Scheduler",
+        "description": "You're given the availability of several employees, `employees`, where `employees[i]` is a list of non-overlapping [start, end] intervals (integers) during which employee `i` is free. You also get a required meeting `duration` and a minimum headcount `k`. Find the earliest integer time `start` such that at least `k` employees each have a single availability interval that fully contains [start, start + duration]. Among all employees who are available at that earliest start time, select exactly `k` of them for the meeting: prefer employees whose covering interval is the tightest fit, i.e. minimize (interval_length - duration) for each selected employee — this minimizes wasted/idle time. If two employees tie on idle time, prefer the one with the smaller index. Return a list where the first element is the start time, followed by the selected employee indices in ascending order. If no valid meeting time exists (e.g. k exceeds the number of employees, or no overlap of size k ever occurs), return an empty list.",
+        "difficulty": "medium",
+        "par_tokens": 550,
+        "function_signature": "def run_code(employees: list[list[list[int]]], duration: int, k: int) -> list[int]:",
+        "starter_code": "def run_code(employees: list[list[list[int]]], duration: int, k: int) -> list[int]:\n    # your code here\n    pass\n",
+        "test_cases": [
+            { "input": [[[[0, 30]], [[10, 50]], [[20, 25]], [[0, 100]]], 10, 2], "expected_output": [0, 0, 3] },
+            { "input": [[[[0, 20]], [[0, 15]], [[0, 10]], [[5, 100]]], 10, 2], "expected_output": [0, 1, 2] },
+            { "input": [[[[5, 25]], [[10, 30]], [[15, 20]]], 5, 2], "expected_output": [10, 0, 1] },
+            { "input": [[[[0, 10]]], 5, 2], "expected_output": [] }
+        ]
+    },
+    {
+        "slug": "min-coloring-cost",
+        "title": "Graph Coloring with Escalating Costs",
+        "description": "You have an undirected graph with `n` nodes (0-indexed) and a list of `edges`, where each edge is [u, v]. You must assign each node one of `k` colors (indices 0 to k-1) so that adjacent nodes never share a color. Each color `c` has a base cost `cost[c]` per node it's assigned to. However, if a color is used on more than `threshold` nodes total, every use beyond the threshold costs double the base rate instead of the normal rate (the first `threshold` uses of that color are still charged normally). Find a valid coloring that minimizes total cost across all nodes, and return that minimum total cost as an integer. If it's impossible to properly color the graph with only `k` colors, return -1.",
+        "difficulty": "hard",
+        "par_tokens": 700,
+        "function_signature": "def run_code(n: int, edges: list[list[int]], k: int, cost: list[int], threshold: int) -> int:",
+        "starter_code": "def run_code(n: int, edges: list[list[int]], k: int, cost: list[int], threshold: int) -> int:\n    # your code here\n    pass\n",
+        "test_cases": [
+            { "input": [3, [[0, 1], [1, 2], [0, 2]], 3, [1, 1, 1], 10], "expected_output": 3 },
+            { "input": [3, [[0, 1], [1, 2]], 2, [1, 5], 1], "expected_output": 8 },
+            { "input": [3, [[0, 1], [1, 2], [0, 2]], 2, [1, 1], 5], "expected_output": -1 },
+            { "input": [4, [[0, 1], [1, 2], [2, 3], [3, 0]], 2, [2, 3], 10], "expected_output": 10 }
+        ]
+    },
+    {
+        "slug": "deepest-reservoir",
+        "title": "Deepest Reservoir Between Two Walls",
+        "description": "A canal has `n` vertical retaining walls, one at each position from 0 to n-1. The wall at position `i` has height `walls[i]`. You may choose any two walls to form the sides of a rectangular reservoir; the reservoir's floor is the canal bed (height 0) and its water level is capped by the shorter of the two chosen walls (water spills over the shorter wall, so it cannot be filled higher). The volume held is the water level multiplied by the horizontal distance between the two chosen walls. Return the maximum volume of water any pair of walls can hold. You may not build a slanted or curved reservoir — only a rectangle between two chosen walls.\n\nExample 1:\nInput: walls = [1,8,6,2,5,4,8,3,7]\nOutput: 49\nExplanation: Choosing the wall at index 1 (height 8) and the wall at index 8 (height 7) gives water level min(8,7)=7 and width 8-1=7, so volume = 49.\n\nExample 2:\nInput: walls = [4,3,2,1,4]\nOutput: 16\nExplanation: Choosing the walls at index 0 and index 4 (both height 4) gives water level 4 and width 4, so volume = 16, which beats any other pair.",
+        "difficulty": "medium",
+        "par_tokens": 450,
+        "function_signature": "def run_code(walls: list[int]) -> int:",
+        "starter_code": "def run_code(walls: list[int]) -> int:\n    # your code here\n    pass\n",
+        "test_cases": [
+            { "input": [[1, 8, 6, 2, 5, 4, 8, 3, 7]], "expected_output": 49 },
+            { "input": [[1, 1]], "expected_output": 1 },
+            { "input": [[4, 3, 2, 1, 4]], "expected_output": 16 },
+            { "input": [[1, 2, 1]], "expected_output": 2 }
+        ]
+    },
+    {
+        "slug": "recalibrate-two-sensors",
+        "title": "Recalibrate Two Sensors",
+        "description": "A row of `n` temperature sensors reports integer readings in the array `readings`. Define the spread of the readings as (maximum reading - minimum reading), and the tightness as the smallest absolute difference between any two distinct sensors' readings. The instability score of the array is spread + tightness. Exactly two of the sensors are miscalibrated and you may set their readings to any integer values you like (independently, not necessarily equal to each other, though setting them equal is often optimal). All other sensors' readings are fixed. Return the minimum possible instability score achievable by recalibrating exactly two sensors.\n\nExample 1:\nInput: readings = [1,4,7,8,5]\nOutput: 3\nExplanation: Recalibrate two of the sensors currently reading 1 and 4 to both read 6, giving readings [6,6,7,8,5]. Tightness = |6-6| = 0, spread = |8-5| = 3, so the score is 3.\n\nExample 2:\nInput: readings = [1,4,3]\nOutput: 0\nExplanation: Recalibrate the sensors reading 4 and 3 to both read 1, giving [1,1,1]. Spread and tightness are both 0.",
+        "difficulty": "medium",
+        "par_tokens": 500,
+        "function_signature": "def run_code(readings: list[int]) -> int:",
+        "starter_code": "def run_code(readings: list[int]) -> int:\n    # your code here\n    pass\n",
+        "test_cases": [
+            { "input": [[1, 4, 7, 8, 5]], "expected_output": 3 },
+            { "input": [[1, 4, 3]], "expected_output": 0 },
+            { "input": [[9, 4, 1, 7]], "expected_output": 2 },
+            { "input": [[5, 5, 5, 5]], "expected_output": 0 }
+        ]
+    },
+    {
+        "slug": "hiking-trip-energy-budget",
+        "title": "Hiking Trip Energy Budget",
+        "description": "You're hiking a trail represented by an integer array `elevations`, where `elevations[i]` is the elevation of checkpoint `i`. You start at checkpoint 0. To move from checkpoint `i` to checkpoint `i+1`: if the next checkpoint is at the same elevation or lower, the step is free. If the next checkpoint is higher, you must either drink one of your `energy_drinks` (each drink lets you skip any single climb, regardless of how steep) or spend `energy_bars` equal to the exact elevation gain (elevations[i+1] - elevations[i]) — you cannot spend a fractional number of bars, and you cannot combine drinks and bars for the same climb. Using the drinks and bars optimally, return the index of the furthest checkpoint you can reach.\n\nExample 1:\nInput: elevations = [4,2,7,6,9,14,12], energy_bars = 5, energy_drinks = 1\nOutput: 4\nExplanation: Step to checkpoint 1 free (4>=2). Step to checkpoint 2 costs 5 bars (2->7, all bars used). Step to checkpoint 3 free (7>=6). Step to checkpoint 4 uses the one energy drink (6->9). No resources remain to climb further.\n\nExample 2:\nInput: elevations = [14,3,19,3], energy_bars = 17, energy_drinks = 0\nOutput: 3\nExplanation: Step 1 free. Step to checkpoint 2 costs 16 bars (3->19), leaving 1 bar. Step 3 is free (19>=3). All checkpoints reached.",
+        "difficulty": "medium",
+        "par_tokens": 550,
+        "function_signature": "def run_code(elevations: list[int], energy_bars: int, energy_drinks: int) -> int:",
+        "starter_code": "def run_code(elevations: list[int], energy_bars: int, energy_drinks: int) -> int:\n    # your code here\n    pass\n",
+        "test_cases": [
+            { "input": [[4, 2, 7, 6, 9, 14, 12], 5, 1], "expected_output": 4 },
+            { "input": [[4, 12, 2, 7, 3, 18, 20, 3, 19], 10, 2], "expected_output": 7 },
+            { "input": [[14, 3, 19, 3], 17, 0], "expected_output": 3 },
+            { "input": [[1, 5], 0, 0], "expected_output": 0 }
+        ]
+    },
+    {
+        "slug": "mission-control-board",
+        "title": "Mission Control Board",
+        "description": "A space agency tracks a mission's progress on an `n x n` grid of checkpoints, numbered 1 to n*n in a boustrophedon (snake) pattern starting from the bottom-left cell and alternating direction each row (row n-1 goes left-to-right, the row above it goes right-to-left, and so on). The mission starts at checkpoint 1. On each turn, mission control rolls a 6-sided die and may advance to any checkpoint in the range [current + 1, min(current + 6, n*n)]. If the destination checkpoint sits on a wormhole or a black hole (board[r][c] != -1 for that cell), the mission is instantly relocated to board[r][c] instead of staying at the rolled destination — this relocation happens at most once per turn (you do not chain through a second wormhole/black hole immediately). The mission is complete when checkpoint n*n is reached. Return the minimum number of turns (die rolls) needed to complete the mission, or -1 if it's impossible.\n\nExample:\nInput: board = [[-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,-1,-1],[-1,35,-1,-1,13,-1],[-1,-1,-1,-1,-1,-1],[-1,15,-1,-1,-1,-1]]\nOutput: 4\nExplanation: From checkpoint 1, roll to checkpoint 2, which is a wormhole to 15. From 15, roll to checkpoint 17, a black hole to 13. From 13, roll to checkpoint 14, a wormhole to 35. From 35, roll to checkpoint 36 (the final cell), completing the mission in 4 turns.",
+        "difficulty": "medium",
+        "par_tokens": 650,
+        "function_signature": "def run_code(board: list[list[int]]) -> int:",
+        "starter_code": "def run_code(board: list[list[int]]) -> int:\n    # your code here\n    pass\n",
+        "test_cases": [
+            {
+                "input": [
+                    [
+                        [-1, -1, -1, -1, -1, -1],
+                        [-1, -1, -1, -1, -1, -1],
+                        [-1, -1, -1, -1, -1, -1],
+                        [-1, 35, -1, -1, 13, -1],
+                        [-1, -1, -1, -1, -1, -1],
+                        [-1, 15, -1, -1, -1, -1]
+                    ]
+                ],
+                "expected_output": 4
+            },
+            {
+                "input": [
+                    [
+                        [-1, -1],
+                        [-1, 3]
+                    ]
+                ],
+                "expected_output": 1
+            },
+            {
+                "input": [
+                    [
+                        [-1, -1, -1],
+                        [-1, -1, -1],
+                        [-1, -1, -1]
+                    ]
+                ],
+                "expected_output": 2
+            }
+        ]
+    },
+    {
+        "slug": "mutual-fund-trading-window",
+        "title": "Mutual Fund Trading Window",
+        "description": "You are tracking the daily unit price of a mutual fund in the array `prices`, where `prices[i]` is the price on day `i`. You are allowed to execute at most `k` round-trip trades: each trade consists of buying units on one day and selling all of them on a later day. You must fully sell (close) a position before opening a new one — you cannot hold two open positions at once. Return the maximum total profit achievable across at most `k` trades. It is acceptable to execute fewer than `k` trades if that yields a higher profit.\n\nExample 1:\nInput: k = 2, prices = [2,4,1]\nOutput: 2\nExplanation: Buy on day 0 at price 2, sell on day 1 at price 4, for a profit of 2. There's no profitable second trade available, so only one trade is executed.\n\nExample 2:\nInput: k = 2, prices = [3,2,6,5,0,3]\nOutput: 7\nExplanation: Buy on day 1 (price 2), sell on day 2 (price 6) for profit 4. Buy on day 4 (price 0), sell on day 5 (price 3) for profit 3. Total profit = 7.",
+        "difficulty": "hard",
+        "par_tokens": 700,
+        "function_signature": "def run_code(k: int, prices: list[int]) -> int:",
+        "starter_code": "def run_code(k: int, prices: list[int]) -> int:\n    # your code here\n    pass\n",
+        "test_cases": [
+            { "input": [2, [2, 4, 1]], "expected_output": 2 },
+            { "input": [2, [3, 2, 6, 5, 0, 3]], "expected_output": 7 },
+            { "input": [1, [7, 1, 5, 3, 6, 4]], "expected_output": 5 },
+            { "input": [2, [1, 2, 3, 4, 5]], "expected_output": 4 }
+        ]
+    },
+    {
+        "slug": "reverse-train-cars",
+        "title": "Reverse Train Cars in Groups",
+        "description": "A freight train's cars are represented as a list of integers `cars`, given in order from the front of the train to the back. Reverse the order of the cars in consecutive groups of size `k` (the first k cars form group 1, the next k form group 2, and so on). If the number of remaining cars at the end of the list is fewer than `k`, leave that final partial group in its original order. Return the resulting list of car values after all full groups have been reversed. Note: `k` is a positive integer no greater than the length of `cars`. (This models the classic 'reverse a linked list in k-groups' problem, but here the train is represented as a plain list rather than linked nodes.)\n\nExample 1:\nInput: cars = [1,2,3,4,5], k = 2\nOutput: [2,1,4,3,5]\nExplanation: Groups of 2: [1,2] and [3,4] are each reversed; the trailing [5] is a partial group of size 1, so it's left alone.\n\nExample 2:\nInput: cars = [1,2,3,4,5,6,7,8], k = 3\nOutput: [3,2,1,6,5,4,7,8]\nExplanation: Groups of 3: [1,2,3] -> [3,2,1] and [4,5,6] -> [6,5,4]. The trailing [7,8] has fewer than 3 cars, so it's left unreversed.",
+        "difficulty": "hard",
+        "par_tokens": 550,
+        "function_signature": "def run_code(cars: list[int], k: int) -> list[int]:",
+        "starter_code": "def run_code(cars: list[int], k: int) -> list[int]:\n    # your code here\n    pass\n",
+        "test_cases": [
+            { "input": [[1, 2, 3, 4, 5], 2], "expected_output": [2, 1, 4, 3, 5] },
+            { "input": [[1, 2, 3, 4, 5], 3], "expected_output": [3, 2, 1, 4, 5] },
+            { "input": [[1, 2, 3, 4, 5, 6, 7, 8], 3], "expected_output": [3, 2, 1, 6, 5, 4, 7, 8] },
+            { "input": [[1, 2], 1], "expected_output": [1, 2] }
+        ]
+    },
+    {
+        "slug": "drone-charging-pad-hop",
+        "title": "Delivery Drone Charging Pad Hop",
+        "description": "A delivery drone must cross a river by hopping between floating charging pads. The pads' positions (in meters from the start bank, measured along the crossing) are given in the sorted ascending array `pads`, and the drone starts on the pad at position `pads[0]` (which is always 0). The drone's very first hop must cover exactly 1 meter. After that, if the drone's previous hop covered `k` meters, its next hop must cover exactly `k - 1`, `k`, or `k + 1` meters (a hop of 0 meters is not allowed, so if k-1 is 0 it's not a valid option), and the drone can only hop forward, never backward. The drone must land exactly on a pad every time — landing in the water fails the crossing. Determine whether the drone can reach the final pad (the last element of `pads`).\n\nExample 1:\nInput: pads = [0,1,3,5,6,8,12,17]\nOutput: true\nExplanation: A valid sequence of hops is 0->1 (1m), 1->3 (2m), 3->5 (2m), 5->6 (1m), 6->8 (2m), 8->12 (4m), 12->17 (5m); each hop differs from the previous by at most 1 meter, so the crossing succeeds.\n\nExample 2:\nInput: pads = [0,1,2,3,4,8,9,11]\nOutput: false\nExplanation: The hop-size rules never let the drone build up enough speed to bridge the 4-meter gap from pad 4 to pad 8, so the crossing fails.",
+        "difficulty": "hard",
+        "par_tokens": 600,
+        "function_signature": "def run_code(pads: list[int]) -> bool:",
+        "starter_code": "def run_code(pads: list[int]) -> bool:\n    # your code here\n    pass\n",
+        "test_cases": [
+            { "input": [[0, 1, 3, 5, 6, 8, 12, 17]], "expected_output": true },
+            { "input": [[0, 1, 2, 3, 4, 8, 9, 11]], "expected_output": false },
+            { "input": [[0, 1]], "expected_output": true },
+            { "input": [[0, 2]], "expected_output": false }
+        ]
+    }
 ]
