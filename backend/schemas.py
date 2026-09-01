@@ -112,10 +112,23 @@ class ProblemDetail(ProblemSummary):
 
 class LeaderboardRow(BaseModel):
     username: str
+    user_id: str
+    submission_id: str  # the score's winning submission -- key for GET /submissions/{id}/prompts
     total_input_tokens: int
     total_output_tokens: int
     elapsed_seconds: float
     created_at: str
+
+
+class PromptTraceResponse(BaseModel):
+    """The chat prompts behind one leaderboard score. Only returned to users who
+    have themselves passed the problem (or own the score). View-only -- the
+    frontend renders it non-selectable."""
+    username: str
+    has_trace: bool  # False when the run was hand-written / edited (no attempt)
+    prompts: list[str]  # the author's chat messages, in order
+    model: str | None = None
+    created_at: str | None = None
 
 
 # --- GET /leaderboard/global ---------------------------------------

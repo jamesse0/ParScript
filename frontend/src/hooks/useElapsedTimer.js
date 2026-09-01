@@ -1,55 +1,56 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 
-// Elapsed seconds since the first chat message (DESIGN.md §7). Call start()
-// once; it's a no-op after the first call, matching "timer starts on first message".
-// Accepts an initial start timestamp so a restored session keeps counting
-// from when it actually started, not from the moment of the reload.
-// If the session was already stopped (e.g. reloading a page after a passing
-// submit), pass initialRunning=false and initialElapsedSeconds to restore the
-// frozen value instead of resuming the count.
-export function useElapsedTimer(initialStartedAt = null, initialRunning = true, initialElapsedSeconds = null) {
-  const [startedAt, setStartedAt] = useState(initialStartedAt)
-  const [elapsedSeconds, setElapsedSeconds] = useState(() => {
-    if (initialElapsedSeconds != null) return initialElapsedSeconds
-    return initialStartedAt ? (Date.now() - initialStartedAt) / 1000 : 0
-  })
+// Accumulating stopwatch: it only advances while running, and start()/pause()
+// bank time across many spans.
+//
+// - Prompt mode: the workspace resumes it for each LLM call and pauses it when
+//   the response lands, so the displayed time is the total the user spent
+//   waiting on the model across all back-and-forth turns.
+// - Manual mode: resumed once when the page is ready and left running until the
+//   solve passes.
+//
+// Takes the restored accumulated seconds so a reloaded session keeps its total;
+// it always comes back paused and resumes on the next start().
+export function useElapsedTimer(initialElapsedSeconds = 0) {
+  const accumulatedRef = useRef(initialElapsedSeconds || 0)
+  const runningSinceRef = useRef(null) // ms timestamp while running, null while paused
+  const [elapsedSeconds, setElapsedSeconds] = useState(accumulatedRef.current)
+  const [running, setRunning] = useState(false)
 
-  const [running, setRunning] = useState(Boolean(initialStartedAt) && initialRunning)
+  const currentElapsedSeconds = useCallback(
+    () =>
+      accumulatedRef.current +
+      (runningSinceRef.current != null ? (Date.now() - runningSinceRef.current) / 1000 : 0),
+    [],
+  )
 
   useEffect(() => {
     if (!running) return undefined
-    const interval = setInterval(() => {
-      setStartedAt((current) => {
-        if (current) setElapsedSeconds((Date.now() - current) / 1000)
-        return current
-      })
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [running])
+    const id = setInterval(() => setElapsedSeconds(currentElapsedSeconds()), 250)
+    return () => clearInterval(id)
+  }, [running, currentElapsedSeconds])
 
   const start = useCallback(() => {
-    setStartedAt((current) => current ?? Date.now())
+    if (runningSinceRef.current != null) return // already running
+    runningSinceRef.current = Date.now()
     setRunning(true)
   }, [])
 
-  const currentElapsedSeconds = useCallback(
-    () => (startedAt ? (Date.now() - startedAt) / 1000 : 0),
-    [startedAt],
-  )
-
-  const stop = useCallback(() => {
-    setElapsedSeconds((current) => {
-      const start = startedAt
-      return start ? (Date.now() - start) / 1000 : current
-    })
+  const pause = useCallback(() => {
+    if (runningSinceRef.current == null) return // already paused
+    accumulatedRef.current += (Date.now() - runningSinceRef.current) / 1000
+    runningSinceRef.current = null
     setRunning(false)
-  }, [startedAt])
-
-  const reset = useCallback(() => {
-    setStartedAt(null)
-    setElapsedSeconds(0)
-    setRunning(false)
+    setElapsedSeconds(accumulatedRef.current)
   }, [])
 
-  return { elapsedSeconds, start, stop, currentElapsedSeconds, startedAt, reset }
+  const reset = useCallback(() => {
+    accumulatedRef.current = 0
+    runningSinceRef.current = null
+    setRunning(false)
+    setElapsedSeconds(0)
+  }, [])
+
+  // Freezing on a passing submit is just a pause — nothing resumes it after.
+  return { elapsedSeconds, running, start, pause, stop: pause, currentElapsedSeconds, reset }
 }

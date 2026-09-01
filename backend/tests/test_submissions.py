@@ -34,10 +34,16 @@ class _Query:
         self._filters.append((col, val))
         return self
 
+    def limit(self, n):
+        self._limit = n
+        return self
+
     def execute(self):
         rows = self._rows
         for col, val in self._filters:
             rows = [r for r in rows if r.get(col) == val]
+        if getattr(self, "_limit", None) is not None:
+            rows = rows[: self._limit]
         return _Resp(rows)
 
 
@@ -55,6 +61,7 @@ def use_rows(rows):
 
 def sub(**over):
     row = {
+        "id": "sub-1",
         "user_id": "u1",
         "problem_id": 1,
         "passed": True,
@@ -108,6 +115,30 @@ class TestLeaderboardModeSplit(unittest.TestCase):
         ])
         rows = S.leaderboard_for_problem(1)
         self.assertEqual([r["username"] for r in rows], ["a"])
+
+    def test_rows_carry_user_and_submission_id(self):
+        use_rows([sub(id="sub-x", user_id="a", mode="prompt", profiles={"username": "a"})])
+        rows = S.leaderboard_for_problem(1, "prompt")
+        self.assertEqual(rows[0]["user_id"], "a")
+        self.assertEqual(rows[0]["submission_id"], "sub-x")
+
+
+class TestPromptTraceHelpers(unittest.TestCase):
+    def test_user_has_passed(self):
+        use_rows([
+            sub(user_id="a", problem_id=1, passed=True),
+            sub(user_id="b", problem_id=1, passed=False),
+        ])
+        self.assertTrue(S.user_has_passed("a", 1))
+        self.assertFalse(S.user_has_passed("b", 1))
+        self.assertFalse(S.user_has_passed("a", 2))
+
+    def test_get_submission(self):
+        use_rows([sub(id="s1", user_id="a", problem_id=3, attempt_id="att-1")])
+        got = S.get_submission("s1")
+        self.assertEqual(got["attempt_id"], "att-1")
+        self.assertEqual(got["problem_id"], 3)
+        self.assertIsNone(S.get_submission("nope"))
 
 
 class TestMetricsExcludesManual(unittest.TestCase):

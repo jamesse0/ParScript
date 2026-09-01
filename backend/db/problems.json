@@ -282,7 +282,7 @@
         "title": "In-Memory Cache with TTL + LRU Eviction",
         "description": "Create a single-file class `Cache`: a fixed-capacity key-value store with TTL expiry and LRU eviction. Use `time.time()` for timing.\n\n- `Cache(capacity)` — max number of live items.\n- `put(key, value, ttl_seconds=None)` — insert or overwrite. `None` never expires. If a new key would exceed capacity, evict an expired item if one exists, otherwise the least-recently-used live item.\n- `get(key)` — the value, or `None` if the key is missing or expired.\n- `size()` — number of live (non-expired) items.\n\nDetails the tests check:\n- Expired means `now > insert_time + ttl_seconds`; an expired item counts as absent even before it's evicted.\n- Only `get()` on a live key refreshes its LRU recency; `get()` on an expired key does not.\n- `put()` on an existing key updates its value and TTL but keeps its LRU position.",
         "difficulty": "system_design",
-        "par_tokens": 10000,
+        "par_tokens": 6000,
         "function_signature": "class Cache:\n    def __init__(self, capacity: int):\n        ...\n\n    def put(self, key, value, ttl_seconds: float | None = None) -> None:\n        ...\n\n    def get(self, key):\n        ...\n\n    def size(self) -> int:\n        ...",
         "starter_code": "import time\nfrom typing import Optional\n\nclass Cache:\n    def __init__(self, capacity: int):\n        # your code here\n        pass\n\n    def put(self, key, value, ttl_seconds: Optional[float] = None) -> None:\n        # your code here\n        pass\n\n    def get(self, key):\n        # your code here\n        pass\n\n    def size(self) -> int:\n        # your code here\n        pass\n",
         "test_kind": "pytest",

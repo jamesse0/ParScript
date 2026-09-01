@@ -1,9 +1,12 @@
 // mode 'prompt' -> rank by tokens (Tokens + Time columns)
 // mode 'manual' -> rank by time (Time column only; no tokens, no par)
-export default function LeaderboardTable({ rows, mode = 'prompt' }) {
+// onSelectRow(row): when given, rows become clickable to open that score's
+// prompt trace (prompt mode only -- manual runs have no prompts).
+export default function LeaderboardTable({ rows, mode = 'prompt', onSelectRow }) {
   const manual = mode === 'manual'
+  const clickable = typeof onSelectRow === 'function'
   return (
-    <table className="leaderboard-table">
+    <table className={`leaderboard-table${clickable ? ' clickable' : ''}`}>
       <thead>
         <tr>
           <th>#</th>
@@ -14,7 +17,12 @@ export default function LeaderboardTable({ rows, mode = 'prompt' }) {
       </thead>
       <tbody>
         {rows.map((row, i) => (
-          <tr key={i}>
+          <tr
+            key={row.submission_id ?? i}
+            className={clickable ? 'row-clickable' : undefined}
+            onClick={clickable ? () => onSelectRow(row) : undefined}
+            title={clickable ? "View this player's prompts" : undefined}
+          >
             <td>{i + 1}</td>
             <td>{row.username}</td>
             {!manual && <td>{row.total_input_tokens + row.total_output_tokens}</td>}
