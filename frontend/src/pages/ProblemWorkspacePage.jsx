@@ -309,7 +309,7 @@ export default function ProblemWorkspacePage() {
         )}
         <CodePanel code={code} onChange={setCode} />
 
-        <button className="btn btn-accent" onClick={handleSubmit} disabled={submitting}>
+        <button className="btn btn-accent" onClick={handleSubmit} disabled={submitting || sending || passed}>
           {submitting ? 'Running...' : 'Submit'}
         </button>
         {submitError && <p className="error">{submitError}</p>}
