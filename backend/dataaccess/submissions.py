@@ -118,6 +118,74 @@ def leaderboard_for_problem(problem_id: int | str, mode: str = "prompt") -> list
     return ordered
 
 
+def global_leaderboard(min_solves: int = 3) -> list[dict]:
+    """Global leaderboard ranking users by handicap (DESIGN.md stretch goal).
+
+    handicap = average of (best total_tokens / par_tokens) across each distinct
+    problem a user has passed at least once -- same ratio metrics_for_user
+    computes per-user, aggregated here across all users. Lower is better,
+    mirroring golf handicap. Only 'prompt' passing submissions count, and a
+    user needs at least `min_solves` distinct solved problems to qualify, so
+    one lucky low-token solve can't top the board.
+    """
+    rows = (
+        get_supabase()
+        .table("submissions")
+        .select(
+            "user_id, problem_id, input_tokens, output_tokens, "
+            "profiles(username), problems(par_tokens)"
+        )
+        .eq("mode", "prompt")
+        .eq("passed", True)
+        .execute()
+        .data
+        or []
+    )
+
+    # best (lowest) total_tokens per user per problem
+    best_tokens: dict[tuple[str, int], int] = {}
+    par_by_problem: dict[int, int] = {}
+    usernames: dict[str, str] = {}
+
+    for row in rows:
+        profile = row.get("profiles") or {}
+        if isinstance(profile, list):  # tolerate array-shaped embed
+            profile = profile[0] if profile else {}
+        problem = row.get("problems") or {}
+        if isinstance(problem, list):  # tolerate array-shaped embed
+            problem = problem[0] if problem else {}
+        par_tokens = problem.get("par_tokens") or 0
+        if not par_tokens:
+            continue  # can't compute a ratio without par
+
+        user_id = row["user_id"]
+        problem_id = row["problem_id"]
+        total_tokens = (row.get("input_tokens") or 0) + (row.get("output_tokens") or 0)
+
+        usernames[user_id] = profile.get("username", "")
+        par_by_problem[problem_id] = par_tokens
+
+        key = (user_id, problem_id)
+        if key not in best_tokens or total_tokens < best_tokens[key]:
+            best_tokens[key] = total_tokens
+
+    ratios_by_user: dict[str, list[float]] = defaultdict(list)
+    for (user_id, problem_id), total_tokens in best_tokens.items():
+        ratios_by_user[user_id].append(total_tokens / par_by_problem[problem_id])
+
+    entries = [
+        {
+            "username": usernames[user_id],
+            "handicap": sum(ratios) / len(ratios),
+            "problems_solved": len(ratios),
+        }
+        for user_id, ratios in ratios_by_user.items()
+        if len(ratios) >= min_solves
+    ]
+
+    return sorted(entries, key=lambda e: e["handicap"])
+
+
 def metrics_for_user(user_id: str) -> dict:
     """Aggregates + history for GET /me/metrics, scoped to this user's submissions.
 

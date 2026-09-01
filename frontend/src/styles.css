@@ -506,3 +506,4 @@ th { color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; le
 
 /* ---------- leaderboard ---------- */
 .leaderboard-page { padding: 2rem 1.75rem; max-width: 800px; margin: 0 auto; }
+.leaderboard-subtitle { color: var(--text-muted); font-size: 0.85rem; margin: -0.5rem 0 1.5rem; }

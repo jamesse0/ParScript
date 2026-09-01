@@ -4,3 +4,7 @@ import { api } from '../lib/api'
 // -> LeaderboardRow[]: { username, total_input_tokens, total_output_tokens, elapsed_seconds, created_at }
 export const getLeaderboard = (problemId, mode = 'prompt') =>
   api(`/leaderboard/${problemId}?mode=${mode}`)
+
+// Ranked by handicap (avg tokens-vs-par ratio across solved problems, ascending).
+// -> GlobalLeaderboardRow[]: { username, handicap, problems_solved }
+export const getGlobalLeaderboard = () => api('/leaderboard/global')

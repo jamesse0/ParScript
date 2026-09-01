@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage'
 import ProblemListPage from './pages/ProblemListPage'
 import ProblemWorkspacePage from './pages/ProblemWorkspacePage'
 import LeaderboardPage from './pages/LeaderboardPage'
+import GlobalLeaderboardPage from './pages/GlobalLeaderboardPage'
 import ProfilePage from './pages/ProfilePage'
 import logo from './assets/parprompt-logo.png'
 
@@ -19,6 +20,9 @@ export default function App() {
           <NavLink to="/problems" className={({ isActive }) => (isActive ? 'active' : undefined)}>
             Problems
           </NavLink>
+          <NavLink to="/leaderboard" className={({ isActive }) => (isActive ? 'active' : undefined)}>
+            Leaderboard
+          </NavLink>
           <NavLink to="/profile" className={({ isActive }) => (isActive ? 'active' : undefined)}>
             Profile
           </NavLink>
@@ -28,6 +32,7 @@ export default function App() {
         <Route path="/" element={<Navigate to="/problems" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/problems" element={<ProblemListPage />} />
+        <Route path="/leaderboard" element={<GlobalLeaderboardPage />} />
         <Route path="/problems/:problemId/leaderboard" element={<LeaderboardPage />} />
         <Route
           path="/problems/:problemId"

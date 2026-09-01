@@ -130,5 +130,62 @@ class TestMetricsExcludesManual(unittest.TestCase):
         self.assertEqual(m["history"], [])
 
 
+class TestGlobalLeaderboard(unittest.TestCase):
+    def test_ranks_by_handicap_ascending(self):
+        use_rows([
+            # user a: 150/300 on P1 -> handicap 0.5
+            sub(user_id="a", problem_id=1, input_tokens=100, output_tokens=50,
+                profiles={"username": "a"}, problems={"title": "P1", "par_tokens": 300, "difficulty": "easy"}),
+            sub(user_id="a", problem_id=2, input_tokens=100, output_tokens=100,
+                profiles={"username": "a"}, problems={"title": "P2", "par_tokens": 400, "difficulty": "easy"}),
+            sub(user_id="a", problem_id=3, input_tokens=100, output_tokens=100,
+                profiles={"username": "a"}, problems={"title": "P3", "par_tokens": 400, "difficulty": "easy"}),
+            # user b: worse ratios, same solve count
+            sub(user_id="b", problem_id=1, input_tokens=200, output_tokens=200,
+                profiles={"username": "b"}, problems={"title": "P1", "par_tokens": 300, "difficulty": "easy"}),
+            sub(user_id="b", problem_id=2, input_tokens=200, output_tokens=200,
+                profiles={"username": "b"}, problems={"title": "P2", "par_tokens": 400, "difficulty": "easy"}),
+            sub(user_id="b", problem_id=3, input_tokens=200, output_tokens=200,
+                profiles={"username": "b"}, problems={"title": "P3", "par_tokens": 400, "difficulty": "easy"}),
+        ])
+        rows = S.global_leaderboard(min_solves=3)
+        self.assertEqual([r["username"] for r in rows], ["a", "b"])
+        self.assertTrue(rows[0]["handicap"] < rows[1]["handicap"])
+        self.assertEqual(rows[0]["problems_solved"], 3)
+
+    def test_excludes_users_below_min_solves(self):
+        use_rows([
+            sub(user_id="a", problem_id=1, profiles={"username": "a"}),
+            sub(user_id="a", problem_id=2, profiles={"username": "a"},
+                problems={"title": "P2", "par_tokens": 300, "difficulty": "easy"}),
+        ])
+        rows = S.global_leaderboard(min_solves=3)
+        self.assertEqual(rows, [])
+
+    def test_best_run_per_problem_counts_not_every_attempt(self):
+        use_rows([
+            sub(user_id="a", problem_id=1, input_tokens=200, output_tokens=100,
+                created_at="2026-08-31T09:00:00Z", profiles={"username": "a"}),
+            sub(user_id="a", problem_id=1, input_tokens=50, output_tokens=25,
+                created_at="2026-08-31T10:00:00Z", profiles={"username": "a"}),
+            sub(user_id="a", problem_id=2, profiles={"username": "a"},
+                problems={"title": "P2", "par_tokens": 300, "difficulty": "easy"}),
+            sub(user_id="a", problem_id=3, profiles={"username": "a"},
+                problems={"title": "P3", "par_tokens": 300, "difficulty": "easy"}),
+        ])
+        rows = S.global_leaderboard(min_solves=3)
+        self.assertEqual(rows[0]["problems_solved"], 3)
+        self.assertAlmostEqual(rows[0]["handicap"], (75 / 300 + 150 / 300 + 150 / 300) / 3)
+
+    def test_manual_submissions_excluded(self):
+        use_rows([
+            sub(user_id="a", problem_id=1, mode="manual", profiles={"username": "a"}),
+            sub(user_id="a", problem_id=2, mode="manual", profiles={"username": "a"}),
+            sub(user_id="a", problem_id=3, mode="manual", profiles={"username": "a"}),
+        ])
+        rows = S.global_leaderboard(min_solves=3)
+        self.assertEqual(rows, [])
+
+
 if __name__ == "__main__":
     unittest.main()

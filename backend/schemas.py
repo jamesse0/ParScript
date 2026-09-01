@@ -109,6 +109,15 @@ class LeaderboardRow(BaseModel):
     created_at: str
 
 
+# --- GET /leaderboard/global ---------------------------------------
+
+
+class GlobalLeaderboardRow(BaseModel):
+    username: str
+    handicap: float  # avg tokens-vs-par ratio across solved problems, lower is better
+    problems_solved: int
+
+
 # --- GET /me/metrics --------------------------------------------
 
 
