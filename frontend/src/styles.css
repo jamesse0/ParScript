@@ -127,6 +127,18 @@ button {
   color: #ffffff;
 }
 
+/* Workspace / leaderboard mode toggle: same pills, no trailing margin (the
+   sidebar and leaderboard page space their children with gap / flow). */
+.mode-toggle { margin-bottom: 0; }
+.mode-toggle button { text-transform: none; }
+
+.leaderboard-more {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
 .problem-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -199,7 +211,9 @@ button {
   user-select: none;
   -webkit-user-select: none;
 }
+.workspace-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
 .workspace-description h1 { margin: 0 0 0.6rem; font-size: 1.4rem; }
+.workspace-title-row .btn { flex-shrink: 0; }
 .workspace-description pre {
   background: var(--surface-muted);
   border: 1px solid var(--border);
@@ -269,6 +283,22 @@ button {
 .chat-message.chat-assistant { background: var(--accent-soft); }
 .chat-message strong { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
 .chat-message p { margin: 0.2rem 0 0; white-space: pre-wrap; }
+.chat-reply-toggle {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.chat-reply-toggle:hover { color: var(--accent); }
+.chat-message.chat-assistant p { margin-top: 0.4rem; }
 .chat-pending { color: var(--text-muted); font-style: italic; }
 .chat-input { display: flex; align-items: flex-end; gap: 0.6rem; margin-top: 0.75rem; }
 .chat-input textarea {
@@ -294,8 +324,10 @@ button {
   border: none;
   padding: 1rem;
   display: block;
-  cursor: default;
   resize: none;
+  overflow-y: hidden; /* height is driven by JS auto-grow */
+  overflow-x: auto;   /* long lines scroll (wrap="off") instead of clipping */
+  tab-size: 4;
 }
 .code-editor:focus { outline: none; }
 
@@ -307,8 +339,20 @@ button {
 .test-results .status { font-weight: 700; font-size: 0.78rem; }
 .test-results code { display: block; font-size: 0.8rem; opacity: 0.85; }
 
-.review-comments { padding: 1rem 1.25rem; background: var(--accent-soft); border-radius: var(--radius-lg); }
-.review-comments h3 { margin-top: 0; }
+.review-comments {
+  padding: 1rem 1.25rem;
+  background: var(--accent-soft);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--accent);
+  box-shadow: var(--shadow-hover);
+  animation: review-pop-in 0.4s ease-out;
+}
+.review-comments h3 { margin-top: 0; color: var(--accent); }
+
+@keyframes review-pop-in {
+  0% { transform: scale(0.97); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
 .review-complexity { display: flex; gap: 0.6rem; margin-bottom: 0.85rem; }
 .review-stat {
   display: flex;
