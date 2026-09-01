@@ -1,11 +1,13 @@
 """Load coding problems from a JSON file into the `problems` table.
 
-Usage (from backend/):
-    python db/seed_problems.py                # loads db/problems.json
-    python db/seed_problems.py path/to.json   # loads a specific file
+The JSON file is the definitive list: rows are upserted on `slug`, and any
+`problems` row whose slug is NOT in the file is deleted (unless it still has
+attempts/submissions referencing it, in which case it's kept and reported).
 
-Idempotent: rows are upserted on `slug`, so re-running after editing the JSON
-updates the existing problems in place. Run after the schema migration is applied.
+Usage (from backend/):
+    python db/seed_problems.py                  # loads db/problems.json
+    python db/seed_problems.py path/to.json     # loads a specific file
+    python db/seed_problems.py --keep-extras    # upsert only, don't delete extras
 """
 
 import json
@@ -58,8 +60,31 @@ def _validate(problem: dict, index: int) -> None:
             )
 
 
+def _prune_extras(supabase, keep_slugs: set[str]) -> None:
+    """Delete problems whose slug isn't in the file, skipping any that still
+    have attempts/submissions pointing at them."""
+    rows = supabase.table("problems").select("id, slug").execute().data or []
+    extras = [r for r in rows if r["slug"] not in keep_slugs]
+    if not extras:
+        return
+    for row in extras:
+        pid = row["id"]
+        refs = (
+            len(supabase.table("attempts").select("id").eq("problem_id", pid).limit(1).execute().data)
+            + len(supabase.table("submissions").select("id").eq("problem_id", pid).limit(1).execute().data)
+        )
+        if refs:
+            print(f"  kept     {row['slug']}  (has attempts/submissions -- not deleted)")
+            continue
+        supabase.table("problems").delete().eq("id", pid).execute()
+        print(f"  deleted  {row['slug']}  (not in file)")
+
+
 def main() -> int:
-    path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_FILE
+    args = sys.argv[1:]
+    keep_extras = "--keep-extras" in args
+    args = [a for a in args if a != "--keep-extras"]
+    path = Path(args[0]) if args else DEFAULT_FILE
     if not path.exists():
         print(f"error: {path} not found", file=sys.stderr)
         return 1
@@ -88,6 +113,10 @@ def main() -> int:
 
     for slug in slugs:
         print(f"  {'updated' if slug in existing_slugs else 'inserted'}  {slug}")
+
+    if not keep_extras:
+        _prune_extras(supabase, set(slugs))
+
     print(f"done: {len(slugs)} problem(s) from {path}")
     return 0
 
