@@ -317,8 +317,20 @@ button {
 .test-results .status { font-weight: 700; font-size: 0.78rem; }
 .test-results code { display: block; font-size: 0.8rem; opacity: 0.85; }
 
-.review-comments { padding: 1rem 1.25rem; background: var(--accent-soft); border-radius: var(--radius-lg); }
-.review-comments h3 { margin-top: 0; }
+.review-comments {
+  padding: 1rem 1.25rem;
+  background: var(--accent-soft);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--accent);
+  box-shadow: var(--shadow-hover);
+  animation: review-pop-in 0.4s ease-out;
+}
+.review-comments h3 { margin-top: 0; color: var(--accent); }
+
+@keyframes review-pop-in {
+  0% { transform: scale(0.97); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
 .review-complexity { display: flex; gap: 0.6rem; margin-bottom: 0.85rem; }
 .review-stat {
   display: flex;

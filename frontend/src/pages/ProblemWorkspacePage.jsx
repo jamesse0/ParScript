@@ -39,6 +39,7 @@ export default function ProblemWorkspacePage() {
   const [leaderboardError, setLeaderboardError] = useState(null)
 
   const attemptRef = useRef(0)
+  const reviewRef = useRef(null)
 
   const { inputTokens, outputTokens, addUsage, reset: resetTokens } = useTokenCounter(saved?.inputTokens, saved?.outputTokens)
   const {
@@ -100,6 +101,12 @@ export default function ProblemWorkspacePage() {
   useEffect(() => {
     refreshLeaderboard()
   }, [problemId])
+
+  useEffect(() => {
+    if (reviewComments) {
+      reviewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [reviewComments])
 
   const handleSend = async (content) => {
     const attempt = attemptRef.current
@@ -209,14 +216,16 @@ export default function ProblemWorkspacePage() {
         </button>
         {submitError && <p className="error">{submitError}</p>}
 
+        <div ref={reviewRef}>
+          <ReviewComments review={reviewComments} />
+        </div>
+
         {testResults && (
           <div className="workspace-results">
             <h2>{passed ? 'All tests passed' : 'Some tests failed'}</h2>
             <TestResultsList results={testResults} />
           </div>
         )}
-
-        <ReviewComments review={reviewComments} />
       </div>
     </div>
   )
